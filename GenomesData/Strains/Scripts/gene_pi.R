@@ -1,7 +1,6 @@
 library(tidyverse)
 library(ggplot2)
 
-/data5/eelriver/CYA2/PH2017/linkage_snv/linkage_calcs/species_1/inStrain/PH2015_03D.species_1.pid96/output
 
 #### INPUT FILES
 sp1_samples <- read_tsv("sample_sp1_list.tsv")
@@ -39,51 +38,64 @@ gi_sp1_df <- make_gi_df(dir_in = in_dir,
                       gi_file_names = gi_files,
                       samp_file = sp1_samples)
 
-gi_sp1_df_filt <- gi_sp1_df %>% 
-  filter(coverage > 2)
+#count(gi_sp1_df, coverage < 2)
+
+cov_quantiles <- gi_sp1_df %>% 
+  filter(coverage > 5) %>% # coverage threshold specified in inStrain
+  group_by(sample) %>% 
+  summarize(
+    quant_0.1= quantile(coverage, probs= 0.1, na.rm= TRUE),
+    quant_0.5= quantile(coverage, probs= 0.5, na.rm= TRUE),
+    quant_0.9= quantile(coverage, probs= 0.9, na.rm= TRUE))
+
+
+## FILTER OUT LOW COVERAGE GENES ##
+# Deciding to filter out the lower 10% of the coverage distributions
+# for samples there is a long low coverage tail of the distribution. 
+# These low distribution samples may be a result of mis-mapping or poor binning
+# These values also contain all the outlier pi values >0.1, which makes these high pi values suspect
+# It will be more conservative to remove them from analyses
+# The high end of the distribution is tighter, so will not be filtered
+
+# Breadth >0.9
+filter_coverage_breadth <- function(gene_df, quant_df, samp_name, breadth_thresh){
+  quant_values <- quant_df %>% filter(sample == samp_name)
+  
+  gene_df_filtered <- gene_df %>% 
+    filter(sample == samp_name) %>% 
+    filter(breadth > breadth_thresh) %>% 
+    filter(coverage > quant_values$quant_0.1)
+  return(gene_df_filtered)
+  
+}
+
+gi_sp1_filt <- map(cov_quantiles$sample, function(x) filter_coverage_breadth(gene_df= gi_sp1_df, 
+                                                                             quant_df = cov_quantiles,
+                                                                             breadth_thresh= 0.9,
+                                                                             samp_name = x))
+gi_sp1_filt_df <- do.call(rbind, gi_sp1_filt)
 
 
 
-ggplot(data= gi_sp1_df_filt) +
+
+ggplot(data= gi_sp1_filt_df) +
   geom_histogram(aes(x= coverage)) +
-  facet_wrap(~sample, nrow= 10, scales= "free_x")
+  facet_wrap(~sample, nrow= 8, scales= "free_x")
 
-ggplot(data= gi_sp1_df_filt) +
-  geom_point(aes(x= gene, y= pi, color= log10(coverage))) +
+ggplot(data= gi_sp1_filt_df) +
+  geom_histogram(aes(x= breadth)) +
+  facet_wrap(~sample, nrow= 8, scales= "free_x")
+
+ggplot(data= gi_sp1_filt_df) +
+  geom_point(aes(x= coverage, y= pi)) +
+  theme_bw()
+
+ggplot(data= gi_sp1_filt_df) +
+  geom_point(aes(x= gene, y= pi)) +
   theme(axis.text.x= element_blank()) +
   facet_wrap(~sample, nrow= 8)
 
 
 
-ggplot(data= gi_sp1_df_filt) +
-  geom_point(aes(x= coverage, y= pi, color= log10(coverage)))
-  #scale_x_continuous(limits= c(2, 10))
 
 
-
-
-
-# gi_pi_summary <- map(gi_list, function(x) unclass(summary(x$pi)))
-# 
-# gi_pi_summary_df <- as.data.frame(do.call(rbind, gi_summary))
-# gi_pi_summary_df$id <- row.names(gi_summary_df)
-# gi_pi_summary_df <- as_tibble(gi_summary_df)
-# 
-# ggplot(data= gi_pi_summary_df) +
-#   geom_jitter(aes(x= NA, y= `1st Qu.`))
-# 
-# ggplot(data= gi_pi_summary_df) +
-#   geom_jitter(aes(x= NA, y= Median))
-# ggplot(data= gi_pi_summary_df) +
-#   geom_jitter(aes(x= NA, y= Min.))
-# 
-# 
-# ggplot(data= filter(gi.df, coverage > 1 & breadth > 0.7)) +
-#   geom_point(aes(x= coverage, y= clonality))
-# 
-# 
-# filter(gi.df, coverage > 2 & breadth > 0.7)
-# table(gi.df$coverage > 1)
-# 
-# ggplot() +
-# geom_histogram(aes(x= gi.df$coverage), binwidth= 3)
