@@ -1,3 +1,34 @@
+
+## Data directories
+EnvData/GIS_files
+EnvData/Russian_River_all_streams_layer
+EnvData/RussianRiver_Hydrologic_Data.gdb
+Old_GenomesAnalyses/
+QB3/
+Output_Figures/
+
+## File types
+*.xlsx
+*.docx
+*.md
+*.bck
+*.freq
+*.linkage
+*.pNpS
+
+
+## DNA files
+*.fa
+*.faa
+*.fasta
+*.fna
+*.xmfa
+*.aln
+*.vcf
+*.gff
+*.
+
+#### R FILES ####
 # History files
 .Rhistory
 .Rapp.history
@@ -16,6 +47,7 @@
 
 # RStudio files
 .Rproj.user/
+*.Rproj
 
 # produced vignettes
 vignettes/*.html
