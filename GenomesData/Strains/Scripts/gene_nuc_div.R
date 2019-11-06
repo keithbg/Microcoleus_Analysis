@@ -118,22 +118,7 @@ gi_filt_summary <- gi_filt_df %>%
 
 
 ## ggplot themes
-theme_strains <- theme(panel.grid = element_blank(),
-                       plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-                       text = element_text(size= 12),
-                       plot.background = element_rect(fill = "transparent", color= "transparent"), # bg of the plot
-                       panel.background = element_rect(fill= "transparent", color= "black"),
-                       #panel.border= element_rect(fill= "transparent", color= "black", linetype= "solid", size= 0.5),
-                       panel.ontop = TRUE,
-                       axis.text = element_text(colour="black"),
-                       axis.title.x = element_text(vjust = -0.75),
-                       axis.title.y = element_text(vjust = 1.5),
-                       legend.background = element_rect(size=0.25, color="black", fill= "transparent"),
-                       legend.key = element_blank(),
-                       strip.background = element_rect(fill="transparent", color= "transparent")
-                       #axis.text.x = element_text(angle= 45, hjust= 1))
-)
-
+source("Scripts/ggplot_themes.R")
 
 
 
@@ -186,18 +171,22 @@ ggplot(data= gi_filt_summary) +
 
 
 ggplot(data= gi_filt_summary, aes(x= watershed_km2, y= median_pi)) +
-  geom_point(aes(color= species), size= 2) +
+  geom_point(aes(fill= species), size= 3) +
   labs(x= expression(paste("Watershed area (", km^{2}, ")")), y= "Median nucleotide diversity") +
   scale_x_continuous(breaks= seq(0, 8000, by= 1000), 
                      labels= c("0", "", "2000", "", "4000", "", "6000", "", "8000"),
                      expand= c(0.02, 0)) +
   scale_y_continuous(limits= c(0, 0.0023), 
                      expand= c(0.02, 0)) +
-  scale_color_manual(values= c("black", "tomato", "dodgerblue"),
+  scale_fill_manual(values= species.colors,
+                    labels= c("1", "2", "3"),
+                    name= "Species") +
+  
+  scale_shape_manual(values= species.shapes,
                      labels= c("1", "2", "3"),
                      name= "Species") +
   theme_strains +
-  theme(legend.position = c(0.9, 0.85))
+  theme(legend.position = c(0.92, 0.85))
 ggsave(last_plot(), filename = "nuc_div_watershed_gene.pdf", height= 180*0.75, width= 180, units= "mm", device= cairo_pdf,
        path= "Output_figures")
 

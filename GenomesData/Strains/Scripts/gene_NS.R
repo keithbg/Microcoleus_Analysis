@@ -1,100 +1,100 @@
+# Investigate nonsynonymous and synonymous SNV results from inStrain
+## The data are generated in the "gene_profile" command in inStrain
+## The files are SampleName.SNP_mutation_types.tsv
+
+
+
+## Libraries
 library(tidyverse)
 library(ggplot2)
 
 
-#### INPUT FILES
-sp1_samples <- read_tsv("sample_sp1_list.tsv")
+#### INPUT FILES ####
 in_dir <- "inStrain/inStrain_gene_profile_output"
+species_lookup <- read_tsv("inStrain_sample_species_lookup.tsv") %>% 
+  mutate(species= str_c("species_", species_present)) %>% 
+  rename(site= sample) %>% 
+  select(-species_present)
 
 
-snv_files <- list.files(in_dir, pattern= "species_1.pid96_SNP")
-snv_list <- map(snv_files, function(x) suppressMessages(read_tsv(file.path(in_dir, x))))
+snv_files <- list.files(in_dir, pattern= ".pid96_SNP")
+snv_list <- map(snv_files, function(x) suppressMessages(read_tsv(file.path(in_dir, x))) %>% 
+                  mutate(sample= str_replace(x, "_SNP_mutation_types.tsv", "")) %>% 
+                  mutate(site= str_split(sample, "\\.")[[1]][1],
+                         species= str_split(sample, "\\.")[[1]][2]))
 names(snv_list) <- str_replace(snv_files, ".tsv", "")
 
-snv.df <- snv_list[[1]]
+# Filter to only include species recovered from each site
+snv_df <- as_tibble(do.call(rbind, snv_list)) %>% left_join(species_lookup, ., by= c("site", "species"))  
 
-## Remove all intergenic SNVs
-snv_genes <- map(snv_list, function(x) filter(x, is.na(gene) == FALSE))
-snv_genes.df <- snv_genes[[1]]
+# Get genome sizes
+genome.size <- read_delim("genome_lengths.txt", delim= " ", col_names= FALSE) %>% 
+  slice(c(13:16, 21:22))
 
-snv_genes_NS <- map(snv_genes, function(x) x %>% 
-                      group_by(gene) %>% 
-                      count(mutation_type) %>% 
-                      spread(key=mutation_type, value= n))
-test <- snv_genes.df %>% 
-  group_by(gene) %>% 
-  count(mutation_type) %>% 
-  spread(key=mutation_type, value= n)
-snv_genes_NS[[1]]
+genome_size_df <- tibble(species= c("species_1", "species_2", "species_3"),
+                         genome_mbp= c(as.numeric(genome.size[2, ]) / 1000000, 
+                                       as.numeric(genome.size[4, ]) / 1000000, 
+                                       as.numeric(genome.size[6, ]) / 1000000))
 
-# make_gi_df <- function(dir_in, gi_file_names, samp_file){
-#   require(tidyverse)
-#   
-#   # Read in gene info files
-#   gi_list <- map(gi_file_names, function(x) suppressMessages(read_tsv(file.path(dir_in, x))) %>% 
-#                    mutate(pi= 1- clonality,
-#                           sample= str_replace(x, "_gene_info.tsv", "")))
-#   names(gi_list) <- str_replace(gi_file_names, ".tsv", "")
-#   
-#   # Match samples in list with samples with the selected ANI species
-#   sp_names <- do.call(rbind, map(names(gi_list), function(x) any(str_detect(x, samp_file$sample))))
-#   gi_list_sp_subset <- gi_list[sp_names]
-#   
-#   # Transform to a data frame
-#   gi_df <- as_tibble(do.call(rbind, gi_list_sp_subset))
-#   return(gi_df)
-# }
-# 
-# 
-# gi_sp1_df <- make_gi_df(dir_in = in_dir,
-#                       gi_file_names = gi_files,
-#                       samp_file = sp1_samples)
-# 
-# gi_sp1_df_filt <- gi_sp1_df %>% 
-#   filter(coverage > 2)
-# 
-# 
-# 
-# ggplot(data= gi_sp1_df_filt) +
-#   geom_histogram(aes(x= coverage)) +
-#   facet_wrap(~sample, nrow= 10, scales= "free_x")
-# 
-# ggplot(data= gi_sp1_df_filt) +
-#   geom_point(aes(x= gene, y= pi, color= log10(coverage))) +
-#   theme(axis.text.x= element_blank()) +
-#   facet_wrap(~sample, nrow= 8)
-# 
-# 
-# 
-# ggplot(data= gi_sp1_df_filt) +
-#   geom_point(aes(x= coverage, y= pi, color= log10(coverage)))
-#   #scale_x_continuous(limits= c(2, 10))
-# 
-# 
-# 
-# 
-# 
-# # gi_pi_summary <- map(gi_list, function(x) unclass(summary(x$pi)))
-# # 
-# # gi_pi_summary_df <- as.data.frame(do.call(rbind, gi_summary))
-# # gi_pi_summary_df$id <- row.names(gi_summary_df)
-# # gi_pi_summary_df <- as_tibble(gi_summary_df)
-# # 
-# # ggplot(data= gi_pi_summary_df) +
-# #   geom_jitter(aes(x= NA, y= `1st Qu.`))
-# # 
-# # ggplot(data= gi_pi_summary_df) +
-# #   geom_jitter(aes(x= NA, y= Median))
-# # ggplot(data= gi_pi_summary_df) +
-# #   geom_jitter(aes(x= NA, y= Min.))
-# # 
-# # 
-# # ggplot(data= filter(gi.df, coverage > 1 & breadth > 0.7)) +
-# #   geom_point(aes(x= coverage, y= clonality))
-# # 
-# # 
-# # filter(gi.df, coverage > 2 & breadth > 0.7)
-# # table(gi.df$coverage > 1)
-# # 
-# # ggplot() +
-# # geom_histogram(aes(x= gi.df$coverage), binwidth= 3)
+#### CALCULATE SNVs per MBP ####
+snvs_mbp_df <- snv_df %>% 
+  left_join(., genome_size_df) %>% 
+  group_by(sample, species, genome_mbp) %>% 
+  summarize(SNVs= length(mutation_type)) %>%
+  ungroup() %>% 
+  mutate(SNV_mbp= SNVs / genome_mbp)
+
+
+#### CALCULATE N:S RATIOS ####
+# for both genome and individual genes
+NS_genome_ratios <- snv_df %>% 
+  group_by(sample, species) %>% 
+  summarize(
+    SNV_count= length(mutation_type),
+    N_count= sum(str_detect(mutation_type, "N")),
+    S_count= sum(str_detect(mutation_type, "S")),
+    I_count= sum(str_detect(mutation_type, "I")),
+    M_count= sum(str_detect(mutation_type, "M")),
+    NS= N_count/S_count) 
+
+
+NS_gene_ratios <- snv_df %>% 
+  filter(mutation_type == "N" & mutation_type == "S") %>% 
+  group_by(sample, gene) %>% 
+  summarize(
+    n= length(mutation_type),
+    N_count= sum(str_detect(mutation_type, "N")),
+    S_count= sum(str_detect(mutation_type, "S")),
+    NS= N_count/S_count) 
+
+
+
+
+## JOIN THE SNVS PER MBP AND NS RATIO DATA
+snvs_genome_df <- left_join(snvs_mbp_df, NS_genome_ratios, by= c("sample", "species"))
+
+
+
+#### MAKE FIGURES ####
+source("Scripts/ggplot_themes.R")
+
+ggplot(data= snvs_genome_df, aes(x= SNV_mbp, y= NS)) +
+  geom_vline(xintercept= 1500, color= "gray50", size= 0.25) +
+  geom_point(aes(fill= species, shape= species), size= 3) +
+  labs(x= "SNVs per mbp", y= "N:S ratio") +
+  scale_x_continuous(limits= c(0, 8500),
+                     breaks= seq(0, 8000, by= 1000), 
+                     labels= c("0", "", "2000", "", "4000", "", "6000", "", "8000"),
+                     expand= c(0, 0)) +
+  scale_fill_manual(values= species.colors,
+                     labels= c("1", "2", "3"),
+                     name= "Species") +
+  
+  scale_shape_manual(values= species.shapes,
+                     labels= c("1", "2", "3"),
+                     name= "Species") +
+  theme_strains +
+  theme(legend.position = c(0.92, 0.85))
+ggsave(last_plot(), filename = "snv_mbp.pdf", height= 180*0.75, width= 180, units= "mm", device= cairo_pdf,
+       path= "Output_figures")
+
