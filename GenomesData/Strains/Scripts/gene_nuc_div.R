@@ -1,3 +1,9 @@
+## Investigate nucleotide diversity (pi) results from inStrain
+## The data are generated in the "gene_profile" command in inStrain
+## The files are SampleName.gene_profile.tsv
+
+
+## Libraries
 library(tidyverse)
 library(ggplot2)
 
@@ -11,7 +17,7 @@ in_dir <- "inStrain/inStrain_gene_profile_output"
 gi_files <- list.files(in_dir, pattern= "pid96_gene_info")
 
 
-## FORMAT gene info data
+## FORMAT GENE INFO FILES
 make_gi_df <- function(dir_in, gi_file_names, samp_file){
   require(tidyverse)
   
@@ -40,25 +46,16 @@ gi_df <- make_gi_df(dir_in = in_dir,
                         samp_file = species_lookup) %>% 
   left_join(species_lookup, ., by= c("site", "species"))  # Filter to only include species recovered from each site
   
-  
 
-cov_quantiles <- gi_sp1_df %>% 
-  filter(coverage > 5) %>% # coverage threshold specified in inStrain
-  group_by(sample) %>% 
-  summarize(
-    quant_0.1= quantile(coverage, probs= 0.1, na.rm= TRUE),
-    quant_0.5= quantile(coverage, probs= 0.5, na.rm= TRUE),
-    quant_0.9= quantile(coverage, probs= 0.9, na.rm= TRUE))
+## READ IN WATERSHED AREA DATA
+dir_input_watershed <- "/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/EnvData"
+watershed.area <-
+  read_tsv(file.path(dir_input_watershed, "PhormMeta17_WatershedArea_Combined.tsv")) %>% 
+  select(ggkbase_id, watershed_km2) %>% 
+  rename(site= ggkbase_id)
 
-cov_quantiles <- gi_df %>% 
-  filter(coverage > 5) %>% # coverage threshold specified in inStrain
-  group_by(sample) %>% 
-  summarize(
-    quant_0.05= quantile(coverage, probs= 0.05, na.rm= TRUE),
-    quant_0.1= quantile(coverage, probs= 0.1, na.rm= TRUE),
-    quant_0.5= quantile(coverage, probs= 0.5, na.rm= TRUE),
-    quant_0.9= quantile(coverage, probs= 0.9, na.rm= TRUE),
-    quant_0.95= quantile(coverage, probs= 0.95, na.rm= TRUE))
+
+
 
 ## FILTER OUT LOW COVERAGE GENES ##
 # Deciding to filter out the lower 10% of the coverage distributions
@@ -69,6 +66,20 @@ cov_quantiles <- gi_df %>%
 # The high end of the distribution is tighter, so will not be filtered
 
 # Remove breadth <=0.9
+
+## Calculate coverage quantiles
+cov_quantiles <- gi_df %>% 
+  filter(coverage > 5) %>% # coverage threshold specified in inStrain
+  group_by(sample) %>% 
+  summarize(
+    quant_0.05= quantile(coverage, probs= 0.05, na.rm= TRUE),
+    quant_0.1= quantile(coverage, probs= 0.1, na.rm= TRUE),
+    quant_0.5= quantile(coverage, probs= 0.5, na.rm= TRUE),
+    quant_0.9= quantile(coverage, probs= 0.9, na.rm= TRUE),
+    quant_0.95= quantile(coverage, probs= 0.95, na.rm= TRUE))
+
+
+## Filter out low coverage and low breadth genes
 filter_coverage_breadth <- function(gene_df, quant_df, samp_name, breadth_thresh){
   quant_values <- quant_df %>% filter(sample == samp_name)
   
@@ -80,18 +91,49 @@ filter_coverage_breadth <- function(gene_df, quant_df, samp_name, breadth_thresh
   
 }
 
-gi_sp1_filt <- map(cov_quantiles$sample, function(x) filter_coverage_breadth(gene_df= gi_sp1_df, 
-                                                                             quant_df = cov_quantiles,
-                                                                             breadth_thresh= 0.9,
-                                                                             samp_name = x))
-gi_sp1_filt_df <- do.call(rbind, gi_sp1_filt)
-
 
 gi_filt <- map(cov_quantiles$sample, function(x) filter_coverage_breadth(gene_df= gi_df, 
                                                                              quant_df = cov_quantiles,
                                                                              breadth_thresh= 0.9,
                                                                              samp_name = x))
-gi_filt_df <- do.call(rbind, gi_filt)
+gi_filt_df <- do.call(rbind, gi_filt) # transform list into a data frame
+
+
+
+#### SUMMARIZE PI VALUES ACROSS THE GENOME ####
+gi_filt_summary <- gi_filt_df %>% 
+  group_by(sample, site, species) %>% 
+  summarize(n= length(pi),
+            mean_pi= mean(pi, na.rm= TRUE),
+            median_pi= median(pi, na.rm= TRUE),
+            sd_pi= sd(pi, na.rm= TRUE),
+            min_pi= min(pi, na.rm= TRUE),
+            max_pi= max(pi, na.rm= TRUE),
+            median_cov= median(coverage, na.rm= TRUE)) %>% 
+  ungroup() %>% 
+  left_join(., watershed.area, by= "site") # COMBINE WITH WATERSHED AREA
+
+
+#### MAKE FIGURES ####
+
+
+## ggplot themes
+theme_strains <- theme(panel.grid = element_blank(),
+                       plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
+                       text = element_text(size= 12),
+                       plot.background = element_rect(fill = "transparent", color= "transparent"), # bg of the plot
+                       panel.background = element_rect(fill= "transparent", color= "black"),
+                       #panel.border= element_rect(fill= "transparent", color= "black", linetype= "solid", size= 0.5),
+                       panel.ontop = TRUE,
+                       axis.text = element_text(colour="black"),
+                       axis.title.x = element_text(vjust = -0.75),
+                       axis.title.y = element_text(vjust = 1.5),
+                       legend.background = element_rect(size=0.25, color="black", fill= "transparent"),
+                       legend.key = element_blank(),
+                       strip.background = element_rect(fill="transparent", color= "transparent")
+                       #axis.text.x = element_text(angle= 45, hjust= 1))
+)
+
 
 
 
@@ -106,6 +148,16 @@ ggplot(data= gi_filt_df) +
   theme_bw()
 
 ggplot(data= gi_filt_df) +
+  geom_point(aes(x= coverage, y= SNPs_per_bp)) +
+  facet_grid(.~species) +
+  theme_bw()
+
+ggplot(data= gi_filt_df) +
+  geom_point(aes(x= pi, y= SNPs_per_bp)) +
+  facet_grid(.~species) +
+  theme_bw()
+
+ggplot(data= gi_filt_df) +
   geom_boxplot(aes(x= sample, y= pi)) +
   theme_bw()
 
@@ -114,44 +166,13 @@ ggplot(data= gi_filt_df) +
   theme(axis.text.x= element_blank()) +
   facet_wrap(~sample, nrow= 8, scales= "free_x")
 
+ggplot(data= gi_filt_df) +
+  geom_point(aes(x= gene, y= SNPs_per_bp, color= species)) +
+  theme(axis.text.x= element_blank()) +
+  facet_wrap(~sample, nrow= 8, scales= "free_x")
 
 
-#### SUMMARIZE PI VALUES ACROSS THE GENOME ####
-gi_sp1_filt_summary <- gi_sp1_filt_df %>% 
-  group_by(sample) %>% 
-  summarize(n= length(pi),
-            mean_pi= mean(pi, na.rm= TRUE),
-            median_pi= median(pi, na.rm= TRUE),
-            sd_pi= sd(pi, na.rm= TRUE),
-            min_pi= min(pi, na.rm= TRUE),
-            max_pi= max(pi, na.rm= TRUE),
-            median_cov= median(coverage, na.rm= TRUE)) %>% 
-  ungroup() %>% 
-  mutate(ggkbase_id= str_replace(sample, ".species_1.pid96", ""))
-
-gi_filt_summary <- gi_filt_df %>% 
-  group_by(sample, site, species) %>% 
-  summarize(n= length(pi),
-            mean_pi= mean(pi, na.rm= TRUE),
-            median_pi= median(pi, na.rm= TRUE),
-            sd_pi= sd(pi, na.rm= TRUE),
-            min_pi= min(pi, na.rm= TRUE),
-            max_pi= max(pi, na.rm= TRUE),
-            median_cov= median(coverage, na.rm= TRUE)) %>% 
-  ungroup() #%>% 
-  #mutate(ggkbase_id= str_replace(sample, ".species_1.pid96", ""))
-
-
-
-## Add watershed area to the data frame
-dir_input_watershed <- "/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/EnvData"
-watershed.area <-
-  read_tsv(file.path(dir_input_watershed, "PhormMeta17_WatershedArea_Combined.tsv")) %>% 
-  select(ggkbase_id, watershed_km2) %>% 
-  rename(site= ggkbase_id)
-  
-gi_filt_summary <- left_join(gi_filt_summary, watershed.area, by= "site")
-
+## SUMMARIZED PI VALUES
 
 
 ggplot(data= gi_filt_summary) +
@@ -165,20 +186,28 @@ ggplot(data= gi_filt_summary) +
 
 
 ggplot(data= gi_filt_summary, aes(x= watershed_km2, y= median_pi)) +
-  geom_point(aes(color= species), size= 3) +
-  labs(x= expression(paste("Watershed area (", km^{2}, ")")), y= expression(paste("Median ", pi))) +
-   scale_x_continuous(#limits= c(0, 2000),
-                      expand= c(0.02, 0)) +
+  geom_point(aes(color= species), size= 2) +
+  labs(x= expression(paste("Watershed area (", km^{2}, ")")), y= "Median nucleotide diversity") +
+  scale_x_continuous(breaks= seq(0, 8000, by= 1000), 
+                     labels= c("0", "", "2000", "", "4000", "", "6000", "", "8000"),
+                     expand= c(0.02, 0)) +
   scale_y_continuous(limits= c(0, 0.0023), 
                      expand= c(0.02, 0)) +
   scale_color_manual(values= c("black", "tomato", "dodgerblue"),
                      labels= c("1", "2", "3"),
-                     name= "Species")+
-  theme_bw(base_size= 20)
+                     name= "Species") +
+  theme_strains +
+  theme(legend.position = c(0.9, 0.85))
+ggsave(last_plot(), filename = "nuc_div_watershed_gene.pdf", height= 180*0.75, width= 180, units= "mm", device= cairo_pdf,
+       path= "Output_figures")
+
+
+
+
 
 ggplot(data= gi_filt_summary, aes(x= watershed_km2, y= median_pi)) +
   geom_point(aes(color= species), size= 3) +
-  labs(x= expression(paste("Watershed area (", km^{2}, ")")), y= expression(paste("Median ", pi))) +
+  labs(x= expression(paste("Watershed area (", km^{2}, ")")), y= "Median nucleotide diversity") +
   scale_x_continuous(#limits= c(0, 2000),
                      expand= c(0.02, 0)) +
   #scale_x_log10(#limits= c(0, 2000),
