@@ -15,6 +15,7 @@ species_lookup <- read_tsv("inStrain_sample_species_lookup.tsv") %>%
   select(-species_present)
 in_dir <- "inStrain/inStrain_gene_profile_output"
 gi_files <- list.files(in_dir, pattern= "pid96_gene_info")
+gg_anno <- read_tsv("inStrain/ggkbase_anno.tsv") # ggkbase annotations
 
 
 ## FORMAT GENE INFO FILES
@@ -96,8 +97,29 @@ gi_filt <- map(cov_quantiles$sample, function(x) filter_coverage_breadth(gene_df
                                                                              quant_df = cov_quantiles,
                                                                              breadth_thresh= 0.9,
                                                                              samp_name = x))
-gi_filt_df <- do.call(rbind, gi_filt) # transform list into a data frame
+## COMBINE WITH GGKBASE ANNOTATIONS
+gi_filt_df <- do.call(rbind, gi_filt) %>%  # transform list into a data frame
+  left_join(., select(gg_anno, c(gene, uniref_anno, uniprot_anno, kegg_anno)), by= "gene") # combine with ggkbase annotations
 
+
+#### INVESTIGATE OUTLIER ANNOTATIONS ####
+pi_quantiles <- gi_filt_df %>% 
+  group_by(species) %>% 
+  summarize(
+    quant_0.9= quantile(pi, probs= 0.9, na.rm= TRUE),
+    quant_0.95= quantile(pi, probs= 0.95, na.rm= TRUE),
+    quant_0.99= quantile(pi, probs= 0.99, na.rm= TRUE))
+
+
+
+
+high_pi <- gi_filt_df %>% 
+  filter(pi > 0.0107)
+
+summary(gi_filt_df$pi)
+
+ggplot(data= gi_filt_df, aes(x= multiple_species, y= pi)) +
+  geom_boxplot()
 
 
 #### SUMMARIZE PI VALUES ACROSS THE GENOME ####
@@ -119,9 +141,6 @@ gi_filt_summary <- gi_filt_df %>%
 
 ## ggplot themes
 source("Scripts/ggplot_themes.R")
-
-
-
 
 ggplot(data= gi_filt_df) +
   geom_histogram(aes(x= coverage, fill= species)) +
