@@ -3,7 +3,6 @@
 ## The files are SampleName.SNP_mutation_types.tsv
 
 
-
 ## Libraries
 library(tidyverse)
 library(ggplot2)
@@ -15,6 +14,7 @@ species_lookup <- read_tsv("inStrain_sample_species_lookup.tsv") %>%
   mutate(species= str_c("species_", species_present)) %>% 
   rename(site= sample) %>% 
   select(-species_present)
+gg_anno <- read_tsv("inStrain/ggkbase_anno.tsv") # ggkbase annotations
 
 
 snv_files <- list.files(in_dir, pattern= ".pid96_SNP")
