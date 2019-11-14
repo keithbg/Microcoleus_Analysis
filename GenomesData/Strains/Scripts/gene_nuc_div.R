@@ -27,8 +27,8 @@ make_gi_df <- function(dir_in, gi_file_names, samp_file){
                    mutate(pi= 1- clonality,
                           sample= str_replace(x, "_gene_info.tsv", "")) %>% 
                    mutate(site= str_split(sample, "\\.")[[1]][1],
-                          species= str_split(sample, "\\.")[[1]][2]))
-  names(gi_list) <- str_replace(gi_file_names, ".tsv", "")
+                          species= str_split(sample, "\\.")[[1]][2])) %>% 
+    setNames(str_replace(gi_file_names, ".tsv", ""))
   
   # Match samples in list with samples with the selected ANI species
   #sp_names <- do.call(rbind, map(names(gi_list), function(x) any(str_detect(x, samp_file$sample))))
@@ -36,7 +36,7 @@ make_gi_df <- function(dir_in, gi_file_names, samp_file){
   
   # Transform to a data frame
   #gi_df <- as_tibble(do.call(rbind, gi_list_sp_subset))
-  gi_df <- as_tibble(do.call(rbind, gi_list))
+  gi_df <- bind_rows(gi_list)
   
   return(gi_df)
 }

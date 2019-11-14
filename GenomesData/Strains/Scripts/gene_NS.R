@@ -2,6 +2,9 @@
 ## The data are generated in the "gene_profile" command in inStrain
 ## The files are SampleName.SNP_mutation_types.tsv
 
+### The SNP_mutation_types.tsv file filters SNVs from the SNVs.tsv file by morphia == 2 and cryptic == FALSE. 
+## This is why there are fewer SNVs in the SNP_mutation_types.tsv file compared to the SNVs.tsv file
+
 
 ## Libraries
 library(tidyverse)
@@ -21,11 +24,11 @@ snv_files <- list.files(in_dir, pattern= ".pid96_SNP")
 snv_list <- map(snv_files, function(x) suppressMessages(read_tsv(file.path(in_dir, x))) %>% 
                   mutate(sample= str_replace(x, "_SNP_mutation_types.tsv", "")) %>% 
                   mutate(site= str_split(sample, "\\.")[[1]][1],
-                         species= str_split(sample, "\\.")[[1]][2]))
-names(snv_list) <- str_replace(snv_files, ".tsv", "")
+                         species= str_split(sample, "\\.")[[1]][2])) %>% 
+  setNames(str_replace(snv_files, ".tsv", ""))
 
 # Filter to only include species recovered from each site
-snv_df <- as_tibble(do.call(rbind, snv_list)) %>% left_join(species_lookup, ., by= c("site", "species"))  
+snv_df <- bind_rows(snv_list) %>% left_join(species_lookup, ., by= c("site", "species"))  
 
 # Get genome sizes
 genome.size <- read_delim("genome_lengths.txt", delim= " ", col_names= FALSE) %>% 
@@ -43,6 +46,7 @@ snvs_mbp_df <- snv_df %>%
   summarize(SNVs= length(mutation_type)) %>%
   ungroup() %>% 
   mutate(SNV_mbp= SNVs / genome_mbp)
+
 
 
 #### CALCULATE N:S RATIOS ####
