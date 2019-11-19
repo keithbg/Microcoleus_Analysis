@@ -83,6 +83,8 @@ gi_df <- make_gi_df(dir_in = in_dir,
                     samp_file = species_lookup) %>% 
   left_join(species_lookup, ., by= c("site", "species"))  # Filter to only include species recovered from each site
 
+# Write files
+write_tsv(gi_df, path= "inStrain/output_tables/gene_info_df.tsv")
 
 
 
@@ -126,10 +128,10 @@ gi_filt <- map(cov_quantiles$sample, function(x) filter_coverage_breadth(gene_df
                                                                          breadth_thresh= 0.9,
                                                                          samp_name = x))
 ## COMBINE WITH GGKBASE ANNOTATIONS
-gi_filt_df <- do.call(rbind, gi_filt) %>%  # transform list into a data frame
+gi_filt_df <- bind_rows(gi_filt) %>%  # transform list into a data frame
   left_join(., select(gg_anno, c(gene, uniref_anno, uniprot_anno, kegg_anno)), by= "gene") # combine with ggkbase annotations
 
 # Write files
-write_tsv(gi_filt_df, path= "inStrain/output_tables/gene_info_df.tsv")
+write_tsv(gi_filt_df, path= "inStrain/output_tables/gene_info_filt_df.tsv")
 
 

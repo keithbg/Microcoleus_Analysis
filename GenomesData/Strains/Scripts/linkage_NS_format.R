@@ -75,5 +75,4 @@ calc_haplotypes <- function(df){
 linkage_type_df_haplo <- calc_haplotypes(linkage_type_df)
 
 ## Write file
-write_tsv(linkage_type_df_haplo, path= "inStrain/linkage_NS.tsv")
-
+ 

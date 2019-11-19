@@ -5,6 +5,7 @@
 ### The SNP_mutation_types.tsv file filters SNVs from the SNVs.tsv file by morphia == 2 and cryptic == FALSE. 
 ## This is why there are fewer SNVs in the SNP_mutation_types.tsv file compared to the SNVs.tsv file
 
+## Input df generated in format_inStrain_output.R
 
 ## Libraries
 library(tidyverse)
@@ -12,23 +13,8 @@ library(ggplot2)
 
 
 #### INPUT FILES ####
-in_dir <- "inStrain/inStrain_gene_profile_output"
-species_lookup <- read_tsv("inStrain_sample_species_lookup.tsv") %>% 
-  mutate(species= str_c("species_", species_present)) %>% 
-  rename(site= sample) %>% 
-  select(-species_present)
-gg_anno <- read_tsv("inStrain/ggkbase_anno.tsv") # ggkbase annotations
+snv_df <- read_tsv("inStrain/output_tables/snp_mutation_type_df.tsv")
 
-
-snv_files <- list.files(in_dir, pattern= ".pid96_SNP")
-snv_list <- map(snv_files, function(x) suppressMessages(read_tsv(file.path(in_dir, x))) %>% 
-                  mutate(sample= str_replace(x, "_SNP_mutation_types.tsv", "")) %>% 
-                  mutate(site= str_split(sample, "\\.")[[1]][1],
-                         species= str_split(sample, "\\.")[[1]][2])) %>% 
-  setNames(str_replace(snv_files, ".tsv", ""))
-
-# Filter to only include species recovered from each site
-snv_df <- bind_rows(snv_list) %>% left_join(species_lookup, ., by= c("site", "species"))  
 
 # Get genome sizes
 genome.size <- read_delim("genome_lengths.txt", delim= " ", col_names= FALSE) %>% 

@@ -2,6 +2,8 @@
 ## The data are generated in the "gene_profile" command in inStrain
 ## The files are SampleName.gene_profile.tsv
 
+## Input df generated in format_inStrain_output.R
+
 
 ## Libraries
 library(tidyverse)
@@ -9,46 +11,10 @@ library(ggplot2)
 
 
 #### INPUT FILES
-species_lookup <- read_tsv("inStrain_sample_species_lookup.tsv") %>% 
-  mutate(species= str_c("species_", species_present)) %>% 
-  rename(site= sample) %>% 
-  select(-species_present)
-in_dir <- "inStrain/inStrain_gene_profile_output"
-gi_files <- list.files(in_dir, pattern= "pid96_gene_info")
-gg_anno <- read_tsv("inStrain/ggkbase_anno.tsv") # ggkbase annotations
+gi_filt_df <- read_tsv("inStrain/output_tables/gene_info_df.tsv")
 
 
-## FORMAT GENE INFO FILES
-make_gi_df <- function(dir_in, gi_file_names, samp_file){
-  require(tidyverse)
-  
-  # Read in gene info files
-  gi_list <- map(gi_file_names, function(x) suppressMessages(read_tsv(file.path(dir_in, x))) %>% 
-                   mutate(pi= 1- clonality,
-                          sample= str_replace(x, "_gene_info.tsv", "")) %>% 
-                   mutate(site= str_split(sample, "\\.")[[1]][1],
-                          species= str_split(sample, "\\.")[[1]][2])) %>% 
-    setNames(str_replace(gi_file_names, ".tsv", ""))
-  
-  # Match samples in list with samples with the selected ANI species
-  #sp_names <- do.call(rbind, map(names(gi_list), function(x) any(str_detect(x, samp_file$sample))))
-  #gi_list_sp_subset <- gi_list[sp_names]
-  
-  # Transform to a data frame
-  #gi_df <- as_tibble(do.call(rbind, gi_list_sp_subset))
-  gi_df <- bind_rows(gi_list)
-  
-  return(gi_df)
-}
-
-
-gi_df <- make_gi_df(dir_in = in_dir,
-                        gi_file_names = gi_files,
-                        samp_file = species_lookup) %>% 
-  left_join(species_lookup, ., by= c("site", "species"))  # Filter to only include species recovered from each site
-  
-
-## READ IN WATERSHED AREA DATA
+## Watershed area data
 dir_input_watershed <- "/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/EnvData"
 watershed.area <-
   read_tsv(file.path(dir_input_watershed, "PhormMeta17_WatershedArea_Combined.tsv")) %>% 
@@ -56,70 +22,6 @@ watershed.area <-
   rename(site= ggkbase_id)
 
 
-
-
-## FILTER OUT LOW COVERAGE GENES ##
-# Deciding to filter out the lower 10% of the coverage distributions
-# for samples there is a long low coverage tail of the distribution. 
-# These low distribution samples may be a result of mis-mapping or poor binning
-# These values also contain all the outlier pi values >0.1, which makes these high pi values suspect
-# It will be more conservative to remove them from analyses
-# The high end of the distribution is tighter, so will not be filtered
-
-# Remove breadth <=0.9
-
-## Calculate coverage quantiles
-cov_quantiles <- gi_df %>% 
-  filter(coverage > 5) %>% # coverage threshold specified in inStrain
-  group_by(sample) %>% 
-  summarize(
-    quant_0.05= quantile(coverage, probs= 0.05, na.rm= TRUE),
-    quant_0.1= quantile(coverage, probs= 0.1, na.rm= TRUE),
-    quant_0.5= quantile(coverage, probs= 0.5, na.rm= TRUE),
-    quant_0.9= quantile(coverage, probs= 0.9, na.rm= TRUE),
-    quant_0.95= quantile(coverage, probs= 0.95, na.rm= TRUE))
-
-
-## Filter out low coverage and low breadth genes
-filter_coverage_breadth <- function(gene_df, quant_df, samp_name, breadth_thresh){
-  quant_values <- quant_df %>% filter(sample == samp_name)
-  
-  gene_df_filtered <- gene_df %>% 
-    filter(sample == samp_name) %>% 
-    filter(breadth > breadth_thresh) %>% 
-    filter(coverage > quant_values$quant_0.1)
-  return(gene_df_filtered)
-  
-}
-
-
-gi_filt <- map(cov_quantiles$sample, function(x) filter_coverage_breadth(gene_df= gi_df, 
-                                                                             quant_df = cov_quantiles,
-                                                                             breadth_thresh= 0.9,
-                                                                             samp_name = x))
-## COMBINE WITH GGKBASE ANNOTATIONS
-gi_filt_df <- do.call(rbind, gi_filt) %>%  # transform list into a data frame
-  left_join(., select(gg_anno, c(gene, uniref_anno, uniprot_anno, kegg_anno)), by= "gene") # combine with ggkbase annotations
-
-
-#### INVESTIGATE OUTLIER ANNOTATIONS ####
-pi_quantiles <- gi_filt_df %>% 
-  group_by(species) %>% 
-  summarize(
-    quant_0.9= quantile(pi, probs= 0.9, na.rm= TRUE),
-    quant_0.95= quantile(pi, probs= 0.95, na.rm= TRUE),
-    quant_0.99= quantile(pi, probs= 0.99, na.rm= TRUE))
-
-
-
-
-high_pi <- gi_filt_df %>% 
-  filter(pi > 0.0107)
-
-summary(gi_filt_df$pi)
-
-ggplot(data= gi_filt_df, aes(x= multiple_species, y= pi)) +
-  geom_boxplot()
 
 
 #### SUMMARIZE PI VALUES ACROSS THE GENOME ####
