@@ -38,8 +38,11 @@ gi_filt_summary <- gi_filt_df %>%
   left_join(., watershed.area, by= "site") # COMBINE WITH WATERSHED AREA
 
 
-#### MAKE FIGURES ####
+summary(gi_filt_summary$max_pi)
 
+
+
+#### MAKE FIGURES ####
 
 ## ggplot themes
 source("Scripts/ggplot_themes.R")
@@ -50,8 +53,9 @@ ggplot(data= gi_filt_df) +
 
 ggplot(data= gi_filt_df) +
   geom_point(aes(x= coverage, y= pi)) +
+  labs(x= "Coverage", y= "Nucleotide diversity") +
   facet_grid(.~species) +
-  theme_bw()
+  theme_strains
 
 ggplot(data= gi_filt_df) +
   geom_point(aes(x= coverage, y= SNPs_per_bp)) +
@@ -80,6 +84,28 @@ ggplot(data= gi_filt_df) +
 
 ## SUMMARIZED PI VALUES
 
+ggplot(data= gi_filt_df) +
+  geom_boxplot(aes(x= sample, y= pi)) +
+  theme_strains
+
+ggplot(data= gi_filt_df) +
+  geom_density(aes(x= pi, color= sample)) +
+  #geom_density(aes(x= pi)) +
+  labs(x= "Nucleotide diversity", y= "Density") +
+  scale_x_log10(limits= c(0.00002, 0.52), # the minimum pi value (apart from 0) is 0.000026
+                breaks= c(0.0001, 0.001, 0.01, 0.1),
+                labels= c("0.0001", "0.001", "0.01", "0.1"),
+                expand= c(0, 0)) +
+  annotation_logticks(sides= "b") +
+  # scale_y_continuous(limits= c(0, 9),
+  #                    breaks= c(0, 2, 4, 6, 8),
+  #                    expand= c(0.02, 0)) +
+  scale_color_discrete(guide= FALSE) +
+  facet_grid(species~., scales= "free_y") +
+  theme_strains
+ggsave(last_plot(), filename = "nuc_div_density.jpg", dpi= 320, height= 180*0.75, width= 180, units= "mm",
+       path= "Output_figures")
+
 
 ggplot(data= gi_filt_summary) +
   geom_point(aes(x= sample, y= sd_pi, color= species)) +
@@ -91,18 +117,23 @@ ggplot(data= gi_filt_summary) +
   theme_bw()
 
 
+
+
+## MEADIAN NUC. DIVERSITY X  WATERSHED AREA
 ggplot(data= gi_filt_summary, aes(x= watershed_km2, y= median_pi)) +
-  geom_point(aes(fill= species), size= 3) +
+  geom_point(aes(fill= species, shape= species), size= 4, color= "gray40") +
   labs(x= expression(paste("Watershed area (", km^{2}, ")")), y= "Median nucleotide diversity") +
-  scale_x_continuous(breaks= seq(0, 8000, by= 1000), 
-                     labels= c("0", "", "2000", "", "4000", "", "6000", "", "8000"),
-                     expand= c(0.02, 0)) +
+  # scale_x_continuous(breaks= seq(0, 8000, by= 1000), 
+  #                    labels= c("0", "", "2000", "", "4000", "", "6000", "", "8000"),
+  #                    expand= c(0.02, 0)) +
+  scale_x_log10(limits= c(1, 10000),
+                expand= c(0, 0)) +
+  annotation_logticks() +
   scale_y_continuous(limits= c(0, 0.0023), 
-                     expand= c(0.02, 0)) +
+                     expand= c(0, 0)) +
   scale_fill_manual(values= species.colors,
                     labels= c("1", "2", "3"),
                     name= "Species") +
-  
   scale_shape_manual(values= species.shapes,
                      labels= c("1", "2", "3"),
                      name= "Species") +
@@ -110,25 +141,14 @@ ggplot(data= gi_filt_summary, aes(x= watershed_km2, y= median_pi)) +
   theme(legend.position = c(0.92, 0.85))
 ggsave(last_plot(), filename = "nuc_div_watershed_gene.pdf", height= 180*0.75, width= 180, units= "mm", device= cairo_pdf,
        path= "Output_figures")
+ggsave(last_plot(), filename = "nuc_div_watershed_gene.jpg", dpi= 320, height= 180*0.75, width= 180, units= "mm",
+       path= "Output_figures")
 
 
 
 
 
-ggplot(data= gi_filt_summary, aes(x= watershed_km2, y= median_pi)) +
-  geom_point(aes(color= species), size= 3) +
-  labs(x= expression(paste("Watershed area (", km^{2}, ")")), y= "Median nucleotide diversity") +
-  scale_x_continuous(#limits= c(0, 2000),
-                     expand= c(0.02, 0)) +
-  #scale_x_log10(#limits= c(0, 2000),
-  #  expand= c(0.02, 0)) +
-  scale_y_continuous(limits= c(0, 0.0023), 
-                     expand= c(0.02, 0)) +
-  facet_grid(.~species) +
-  theme_bw(base_size= 20)
-
-
-
+## Check for coverage and watershed area relationship
 ggplot(data= gi_filt_summary, aes(x= watershed_km2, y= median_cov)) +
   geom_point(aes(color= species, shape= species), size= 3) +
   labs(x= expression(paste("Watershed area (", km^{2}, ")")), y= "Median coverage") +

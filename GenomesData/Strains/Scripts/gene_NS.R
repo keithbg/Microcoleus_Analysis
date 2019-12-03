@@ -14,6 +14,17 @@ library(ggplot2)
 
 #### INPUT FILES ####
 snv_df <- read_tsv("inStrain/output_tables/snp_mutation_type_df.tsv")
+dir_input_map <- file.path("/Users","kbg","Documents","UC_Berkeley","CyanoMeta_NSF","Metagenomics", "Microcoleus_Analysis","EnvData")
+
+## Read in Lat Longs
+latlong <- read_csv(file.path(dir_input_map, "PhormMeta17_LatLong_combined.csv")) %>%
+  mutate(year= as.character(year))
+
+## Watershed area data
+dir_input_watershed <- "/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/EnvData"
+watershed.area <-
+  read_tsv(file.path(dir_input_watershed, "PhormMeta17_WatershedArea_Combined.tsv")) %>% 
+  select(ggkbase_id, watershed_km2)
 
 
 # Get genome sizes
@@ -60,8 +71,15 @@ NS_gene_ratios <- snv_df %>%
 
 
 
-## JOIN THE SNVS PER MBP AND NS RATIO DATA
-snvs_genome_df <- left_join(snvs_mbp_df, NS_genome_ratios, by= c("sample", "species"))
+## JOIN THE SNVS PER MBP AND NS RATIO AND LAT/LONGAND WATERSHED DATA
+snvs_genome_df <- left_join(snvs_mbp_df, NS_genome_ratios, by= c("sample", "species")) %>% 
+  mutate(pop_age= ifelse(SNV_mbp < 1550, 1, 0),
+         ggkbase_id= str_replace(sample, "\\.species.*$", "")) %>% 
+  left_join(., latlong, by= "ggkbase_id") %>% 
+  left_join(., watershed.area, by= "ggkbase_id")
+  
+  
+  
 
 
 
@@ -69,17 +87,20 @@ snvs_genome_df <- left_join(snvs_mbp_df, NS_genome_ratios, by= c("sample", "spec
 source("Scripts/ggplot_themes.R")
 
 ggplot(data= snvs_genome_df, aes(x= SNV_mbp, y= NS)) +
-  geom_vline(xintercept= 1500, color= "gray50", size= 0.25) +
-  geom_point(aes(fill= species, shape= species), size= 3) +
+  geom_vline(xintercept= 1500, color= "gray50", size= 0.5, linetype= "dashed") +
+  geom_point(aes(fill= species, shape= species), size= 4, color= "gray40") +
+  geom_text(aes(x= 750, y= 2.4, label = "Young \npopulations", hjust= "middle")) +
+  geom_text(aes(x= 2500, y= 2.4, label = "Old \npopulations", hjust= "middle")) +
   labs(x= "SNVs per mbp", y= "N:S ratio") +
   scale_x_continuous(limits= c(0, 8500),
                      breaks= seq(0, 8000, by= 1000), 
                      labels= c("0", "", "2000", "", "4000", "", "6000", "", "8000"),
                      expand= c(0, 0)) +
+  scale_y_continuous(limits= c(0, 2.5),
+                     expand= c(0, 0))+
   scale_fill_manual(values= species.colors,
                      labels= c("1", "2", "3"),
                      name= "Species") +
-  
   scale_shape_manual(values= species.shapes,
                      labels= c("1", "2", "3"),
                      name= "Species") +
@@ -87,4 +108,96 @@ ggplot(data= snvs_genome_df, aes(x= SNV_mbp, y= NS)) +
   theme(legend.position = c(0.92, 0.85))
 ggsave(last_plot(), filename = "snv_mbp.pdf", height= 180*0.75, width= 180, units= "mm", device= cairo_pdf,
        path= "Output_figures")
+ggsave(last_plot(), filename = "snv_mbp.jpg", height= 180*0.75, width= 180, units= "mm", dpi= 320,
+       path= "Output_figures")
+
+
+ggplot(data= snvs_genome_df, aes(x= watershed_km2, y= SNV_mbp)) +
+  geom_hline(yintercept= 1500, color= "gray50", size= 0.5, linetype= "dashed") +
+  geom_point(aes(fill= species, shape= species), size= 4, color= "gray40") +
+  geom_smooth(se= FALSE) +
+#  geom_text(aes(x= 750, y= 2.4, label = "Young \npopulations", hjust= "middle")) +
+#  geom_text(aes(x= 2500, y= 2.4, label = "Old \npopulations", hjust= "middle")) +
+#  labs(x= "SNVs per mbp", y= "N:S ratio") +
+  # scale_x_continuous(limits= c(0, 8500),
+  #                    breaks= seq(0, 8000, by= 1000), 
+  #                    labels= c("0", "", "2000", "", "4000", "", "6000", "", "8000"),
+  #                    expand= c(0, 0)) +
+  # scale_y_continuous(limits= c(0, 2.5),
+  #                    expand= c(0, 0))+   
+  scale_x_log10() +
+  annotation_logticks() +
+  scale_fill_manual(values= species.colors,
+                    labels= c("1", "2", "3"),
+                    name= "Species") +
+  scale_shape_manual(values= species.shapes,
+                     labels= c("1", "2", "3"),
+                     name= "Species") +
+  theme_strains +
+  theme(legend.position = c(0.92, 0.85))
+ggsave(last_plot(), filename = "snv_mbp.pdf", height= 180*0.75, width= 180, units= "mm", device= cairo_pdf,
+       path= "Output_figures")
+ggsave(last_plot(), filename = "snv_mbp.jpg", height= 180*0.75, width= 180, units= "mm", dpi= 320,
+       path= "Output_figures")
+
+
+
+ggplot(data= snvs_genome_df, aes(x= pop_age, y= watershed_km2)) +
+geom_boxplot() +
+  scale_y_log10() +
+  theme_strains
+
+ggplot(data= snvs_genome_df, aes(x= watershed_km2, y= pop_age)) +
+  geom_point()+
+  stat_smooth() +
+  scale_x_log10() +
+  theme_strains
+
+
+#### MAKE MAP
+
+
+
+## Export as KML
+# coordinates(latlong)<-c("long","lat")          #Build a SpatialPointsData Frame
+# proj4string(latlong)<-CRS("+proj=longlat +datum=WGS84")
+# writeOGR(latlong, dsn=file.path(dir_input, "GIS_files",  "sites.kml"), layer= "sites", driver="KML")
+
+
+## Remove rows with duplicate sites to reduce the number of points
+latlong.map <- latlong %>%
+  distinct(acronym, .keep_all = TRUE)
+
+## Make base map of Eel and Russian River watersheds
+dir_input_script <- file.path("/Users","kbg","Documents","UC_Berkeley","CyanoMeta_NSF","Metagenomics", "Microcoleus_Analysis", "Scripts_cyano_metagenomics_2017")
+source(file.path(dir_input_script, "Map_eel_russian.R"))
+# Returns R object: PH2017_eel_russian_base_map
+
+
+PH2017_map_theme <- theme(text= element_text(size= 14),
+                          panel.background = element_rect(fill= "light blue"),
+                          panel.border = element_rect(color= "black", fill= NA),
+                          legend.key= element_rect(fill= "transparent"),
+                          plot.background = element_rect(fill= "transparent", color= NA),
+                          panel.grid.minor = element_blank(),
+                          panel.grid.major = element_blank()
+)
+
+
+## Add information to base map
+PH2017_eel_russian_base_map +
+  geom_point(data= snvs_genome_df, aes(x= long, y= lat, fill= pop_age, shape= species), color= "black", size= 4, position= "jitter") +
+  #geom_label_repel(data= latlong.map, aes(x= long, y= lat, label= acronym)) +
+  #annotate("text", x= -123.3, y= 40.35, label= "Eel River", angle= 310, size= 4) +
+  #annotate("text", x= -122.7, y= 38.9, label= "Russian River", angle= 310, size= 4) +
+  scale_shape_manual(values= c(21, 23, 24)) +
+  #facet_wrap(~species) +
+  PH2017_map_theme
+
+#ggsave(last_plot(), filename= "Map_sample_locations.pdf", width= 6, height= 8, units= "in",
+#       path= dir_output_fig)
+
+
+
+
 
