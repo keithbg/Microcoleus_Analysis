@@ -14,6 +14,7 @@ snv.files <- list.files("inStrain/inStrain_gene_profile_output/", pattern= "SNP_
 
 link.list <- map(link.files, function (x) read_tsv(file.path("inStrain", "inStrain_linkage_output", x))) %>% 
   setNames(str_replace(link.files, ".linkage.tsv", ""))
+
 snv.list <- map(snv.files, function (x) read_tsv(file.path("inStrain", "inStrain_gene_profile_output", x))) %>% 
   setNames(str_replace(snv.files, "_SNP_mutation_types.tsv", ""))
 
@@ -60,6 +61,7 @@ linkage_type_df <- bind_rows(linkage_type, .id= "sample") %>%
   mutate(species= do.call(rbind, str_split(.$sample, "\\."))[, 2]) %>% 
   select(sample, species, scaffold, everything())
 
+
 ## CALCULATE HAPLOTYPES
 calc_haplotypes <- function(df){
   counts <-  as.matrix(df[, c('countAB','countAb','countaB','countab')])
@@ -75,4 +77,6 @@ calc_haplotypes <- function(df){
 linkage_type_df_haplo <- calc_haplotypes(linkage_type_df)
 
 ## Write file
+write_tsv(linkage_type_df_haplo, path= "inStrain/output_tables/linkage_haplo_df.tsv")
+
  
