@@ -12,6 +12,7 @@
 
 ## Libraries
 library(tidyverse)
+library(ggplot2)
 
 #### FILE PATHS ##########################################################################################
 in_dir <- "inStrain/inStrain_gene_profile_output"
@@ -27,7 +28,7 @@ gg_anno <- read_tsv("inStrain/ggkbase_anno.tsv") # ggkbase annotations
 
 #### SNP_MUTATION_TYPE.TSV FILE ##################################################################################
 
-#### INPUT FILES ####
+## Input files
 snv_files <- list.files(in_dir, pattern= ".pid96_SNP")
 snv_list <- map(snv_files, function(x) suppressMessages(read_tsv(file.path(in_dir, x))) %>% 
                   mutate(sample= str_replace(x, "_SNP_mutation_types.tsv", "")) %>% 
@@ -135,3 +136,4 @@ gi_filt_df <- bind_rows(gi_filt) %>%  # transform list into a data frame
 write_tsv(gi_filt_df, path= "inStrain/output_tables/gene_info_filt_df.tsv")
 
 
+#### COMPARER RESULTS ##################################################################################
