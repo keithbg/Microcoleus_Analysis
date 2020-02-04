@@ -37,9 +37,13 @@ gi_filt_summary <- gi_filt_df %>%
   ungroup() %>% 
   left_join(., watershed.area, by= "site") # COMBINE WITH WATERSHED AREA
 
+#write_tsv(gi_filt_summary, "Output_tables/nuc_div_summary.txt")
 
 summary(gi_filt_summary$max_pi)
 
+hist(gi_filt_summary$median_pi - gi_filt_summary$mean_pi)
+hist(gi_filt_summary$mean_pi)
+hist(gi_filt_summary$median_pi)
 
 
 #### MAKE FIGURES ####

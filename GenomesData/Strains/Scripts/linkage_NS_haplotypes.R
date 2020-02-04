@@ -20,8 +20,8 @@ link_sum <- link %>%
   summarize(r2_norm_mean= mean(r2_normalized, na.rm= TRUE),
             Dprime_norm_mean= mean(d_prime_normalized, na.rm= TRUE))
 
-test <- link.species %>% 
-  filter(str_detect(scaffold, "PH2015_13D"))
+#test <- link.species %>% 
+#  filter(str_detect(scaffold, "PH2015_13D"))
 
 ## HAPLOTYPES
 
@@ -30,10 +30,16 @@ haplo.freq <- link.species %>%
   summarize(n= length(haplotype)) %>% 
   mutate(freq= n/sum(n))
 
+write_tsv(haplo.freq, path= "inStrain/output_tables/haplotype_freqs.tsv")
+
+
+
 
 with(haplo.freq, table(filter(., species == "species_1"), freq < 0.01))
 
 
+haplo.freq.sp1 <- haplo.freq %>% 
+  filter(species == "species_1")
 
 
 # Summarize haplotype frequencies
@@ -88,14 +94,24 @@ haplo.freq %>%
   count(n>0)
 
 
-yggplot(data= haplo.freq, aes(x= site, y= freq)) +
+ggplot(data= haplo.freq, aes(x= site, y= freq)) +
   geom_bar(aes(fill= haplotype), stat= "identity") +
   #scale_x_discrete(labels= unique(str_replace(haplo.freq$sample, "\\.species.*", ""))) +
   scale_y_continuous(expand= c(0, 0)) +
   facet_grid(species~.) +
   theme_strains +
   theme(axis.text.x= element_text(angle= 90, vjust= 0.5))
-ggsave(last_plot(), filename= "haplotype_freqs.jpg", path= "Output_figures", width= 10, height= 8, units= "in", dpi= 320)
+ggsave(last_plot(), filename= "haplotype_freqs.png", path= "Output_figures", height= 180*0.75, width= 180, units= "mm", dpi= 320,)
+
+
+ggplot(data= haplo.freq, aes(x= site, y= freq)) +
+  geom_bar(aes(fill= haplotype), stat= "identity") +
+  #scale_x_discrete(labels= unique(str_replace(haplo.freq$sample, "\\.species.*", ""))) +
+  scale_y_continuous(expand= c(0, 0)) +
+  facet_grid(species~.) +
+  theme_strains +
+  theme(axis.text.x= element_text(angle= 90, vjust= 0.5))
+
 
 ggplot(data= haplo.freq, aes(x= site, y= freq)) +
   geom_bar(aes(fill= haplotype), stat= "identity") +
@@ -105,7 +121,7 @@ ggplot(data= haplo.freq, aes(x= site, y= freq)) +
   facet_grid(species~., scales= "free_y") +
   theme_strains +
   theme(axis.text.x= element_text(angle= 90, vjust= 0.5))
-ggsave(last_plot(), filename= "haplotype_freqs_tall.jpg", path= "Output_figures", width= 8, height= 20, units= "in", dpi= 320)
+ggsave(last_plot(), filename= "haplotype_freqs_tall.png", path= "Output_figures", width= 8, height= 20, units= "in", dpi= 320)
 
 
 ggplot(data= haplo.freq, aes(x= freq)) +
@@ -122,7 +138,7 @@ ggplot(data= haplo.freq, aes(x= freq)) +
                      expand= c(0.01, 0)) +
   facet_grid(species~haplotype, scales= "free_y") +
   theme_strains
-ggsave(last_plot(), filename= "haplotype_freqs_histogram.jpg", path= "Output_figures", width= 8, height= 6, units= "in", dpi= 320)
+ggsave(last_plot(), filename= "haplotype_freqs_histogram.png", path= "Output_figures", width= 8, height= 6, units= "in", dpi= 320)
 
 
 
