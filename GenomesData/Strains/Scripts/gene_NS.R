@@ -80,8 +80,10 @@ snvs_genome_df <- left_join(snvs_mbp_df, NS_genome_ratios, by= c("sample", "spec
          pop_age_binary= ifelse(SNV_mbp < 1550, 1, 0),
          ggkbase_id= str_replace(sample, "\\.species.*$", "")) %>% 
   left_join(., latlong, by= "ggkbase_id") %>% 
-  left_join(., watershed.area, by= "ggkbase_id")
-  
+  left_join(., watershed.area, by= "ggkbase_id") %>% 
+  rename(species= species.x)
+write_tsv(snvs_genome_df, "Output_tables/snvs_genome_summary.tsv")
+
   
   
 

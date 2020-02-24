@@ -2,6 +2,7 @@ library(tidyverse)
 library(tidygraph)
 library(ggplot2)
 library(ggraph)
+library(wesanderson)
 
 ## Watershed area data
 dir_input_watershed <- "/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/EnvData"
@@ -12,13 +13,19 @@ watershed.area <-
 
 sp1.clusters <- read_tsv("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/dRep/Output_tables/sp1_clusters.tsv")
 
+## SNV data and young/old populations
+snv_genomes <- read_tsv("Output_tables/snvs_genome_summary.tsv") %>% 
+  filter(species == "species_1") %>% 
+  select(ggkbase_id, SNV_mbp, pop_age)
 
-# high_popANI <- read_tsv("Output_tables/popANI_90percentile.tsv") %>% 
-#   filter(ani_dRep > 0.99)
-high_dRep <- read_tsv("Output_tables/ani_summary.tsv") %>% 
-  filter(ani_dRep > 0.99)
 
-df= high_dRep
+## Read in ANI data
+high_conANI <- read_tsv("Output_tables/ani_summary.tsv") %>% 
+  #filter(ani_dRep > 0.99)
+  filter(mean_conANI > 0.9935) %>% 
+  mutate(riv_dist= ifelse(riv_dist == 0, 0.01, riv_dist))
+
+#df= high_conANI
 format_network <- function(df){
 
 nodes <- unique(c(df$name1, df$name2)) %>% 
@@ -52,9 +59,11 @@ network_object <- tbl_graph(nodes= nodes, edges= edges, directed= FALSE) %>%
 return(network_object)
 }
 
-high_dRep_network <- format_network(high_dRep)
-
-node_degreeness_high <- high_dRep_network %>%
+high_conANI_network <- format_network(high_conANI) %>% 
+  activate(nodes) %>%
+  left_join(., select(snv_genomes, ggkbase_id, pop_age), by= c("label" = "ggkbase_id"))
+  
+node_degreeness_high <- high_conANI_network %>%
   activate(nodes) %>%
   mutate(importance = centrality_degree()) %>% 
   arrange(-importance) %>% 
@@ -62,26 +71,33 @@ node_degreeness_high <- high_dRep_network %>%
   left_join(., watershed.area, by= c("label" = "site")) %>% 
   rename(importance_high = importance)
 
+high_conANI_network %>% 
+  activate(nodes) %>% 
+  as_tibble() %>% 
+  count(pop_age)
 
-ggraph(high_dRep_network, layout= 'igraph', algorithm= "kk") + 
+
+ggraph(high_conANI_network, layout= 'igraph', algorithm= "kk") + 
   #geom_edge_link(edge_width= 0.25, color= "gray50") + 
   geom_edge_link(edge_width= 1, aes(color= log10(riv_dist))) + 
-  geom_node_point(size= 1) + 
+  geom_node_point(aes(fill= pop_age), size= 3, pch=21, color= "black") + 
   #geom_node_point(aes(size= as.character(degree))) + 
   geom_node_text(aes(label = label), repel = TRUE, size= 2) +
   scale_edge_color_viridis(option= "plasma",
-                           label= c("10", "100", "1,000", "10,000", "100,000"),
+                           #label= c("10", "100", "1,000", "10,000", "100,000"),
+                           breaks= c(-2,  -1, 0, 1, 2, 3, 4, 5),
+                           label= c("0.01", "0.1", "1", "10", "100", "1,000", "10,000", "100,000"),
                            name= "River distance (m)") +
-  #scale_color_continuous() +
-  #scale_color_manual(name="Type of Activity",guide=guide_legend(override.aes=list(label=c("w","s"))),
-  #                   values=c("red","blue"),labels=c("Work","School"))
+  scale_fill_manual(#values= c("green", "blue"),
+                     values= wes_palette("Royal1")[c(1, 3)],
+                     name= "Population\nage") +
   theme_graph()
 
-ggsave(last_plot(), filename = "network_dRep99.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
-       path= "../dRep/Output_figures")
+ggsave(last_plot(), filename = "network_conANI9935.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
+       path= "Output_figures")
 
 
-?ggraph
+
 
 ggraph(net_high) + 
   geom_edge_link(edge_width= 0.25, color= "gray50") + 
@@ -176,27 +192,27 @@ dir_latlong <- file.path("/Users","kbg","Documents","UC_Berkeley","CyanoMeta_NSF
 latlong <- read_csv(file.path(dir_latlong, "PhormMeta17_LatLong_combined.csv")) %>%
   mutate(year= as.character(year))
 
-high_dRep_map <- high_dRep %>% 
+high_conANI_map <- high_conANI %>% 
   select(name1, name2) %>% 
   mutate(nodes_id= str_c(name1, name2, sep= "-")) %>% 
   pivot_longer(names_to = "node", values_to = "ggkbase_id", name1:name2) %>% 
   left_join(., latlong) %>% 
   left_join(., node_degreeness_high, by= c("ggkbase_id" = "label"))
 
-high_dRep_map_labels <- high_dRep_map %>% 
+high_conANI_map_labels <- high_conANI_map %>% 
   select(long, lat, ggkbase_id) %>% 
   distinct()
 
 PH2017_eel_base_map +
   geom_point(data= latlong, aes(x= long, y= lat), size= 3, pch=21, fill= "gray75", color= "black") +
-  geom_line(data= high_dRep_map, aes(x= long, y= lat, group= nodes_id), color= "black", size= 0.3) +
-  geom_point(data= high_dRep_map, aes(x= long, y= lat, fill= as.character(importance_high)), size= 4, pch= 21, color= "black") +
+  geom_line(data= high_conANI_map, aes(x= long, y= lat, group= nodes_id), color= "black", size= 0.3) +
+  geom_point(data= high_conANI_map, aes(x= long, y= lat, fill= as.character(importance_high)), size= 4, pch= 21, color= "black") +
   #geom_label_repel(data= high_popANI_map_labels, aes(x= long, y= lat, label= ggkbase_id)) +
   scale_fill_viridis_d(name= "Node degreeness", direction= 1, begin= 0.2, option= "magma") +
   scale_size_continuous(guide = FALSE) +
   PH2017_map_theme
-ggsave(last_plot(), filename = "network_map_dRep99.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
-       path= "../dRep/Output_figures")
+ggsave(last_plot(), filename = "network_map_conANI9935.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
+        path= "Output_figures")
 
 
 

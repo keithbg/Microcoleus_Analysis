@@ -22,10 +22,11 @@ rm(ani.dist1)
 
 ## Watershed area data
 dir_input_watershed <- "/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/EnvData"
-watershed.area <-
-  read_tsv(file.path(dir_input_watershed, "PhormMeta17_WatershedArea_Combined.tsv")) %>% 
-  select(ggkbase_id, watershed_km2) %>% 
-  rename(site= ggkbase_id)
+watershed.area <- read_tsv(file.path(dir_input_watershed, "PhormMeta17_WatershedArea_Combined.tsv")) %>% 
+ # rename(site= ggkbase_id) %>% 
+  select(ggkbase_id, watershed_km2)
+
+
 
 ## Nucleotide diversity
 nuc_div <- read_tsv("Output_tables/nuc_div_summary.txt") %>% 
@@ -45,6 +46,11 @@ sp1.ani <- read_tsv(file.path(dir_input_dRep, "sp1_ani.tsv")) %>%
 ## Haplotype frequencies
 haplos <- read_tsv(file= "inStrain/output_tables/haplotype_freqs.tsv") %>% 
   filter(species == "species_1")
+
+## SNV data and young/old populations
+snv_genomes <- read_tsv("Output_tables/snvs_genome_summary.tsv") %>% 
+  filter(species == "species_1") %>% 
+  select(ggkbase_id, SNV_mbp, pop_age)
 
 
 
@@ -140,16 +146,19 @@ ani_sum <- comp_sp1.F %>%
             median_popANI= median(popANI),
             median_conANI= median(conANI)) %>% 
   ungroup() %>% 
-  left_join(., watershed.area, by= c("name1" = "site")) %>% 
-  left_join(., watershed.area, by= c("name2" = "site")) %>% 
+  # WATERSHED AREA JOIN
+  left_join(., watershed.area, by= c("name1" = "ggkbase_id")) %>% 
+  left_join(., watershed.area, by= c("name2" = "ggkbase_id")) %>% 
   rename(watershed_1= watershed_km2.x, watershed_2= watershed_km2.y) %>% 
-  #left_join(., select(sp1.clusters, sp1_clustID, site), by= c("name1" = "site")) %>% 
-  #left_join(., select(sp1.clusters, sp1_clustID, site), by= c("name2" = "site")) %>% 
-  #rename(sp1_clustID.1= sp1_clustID.x, sp1_clustID.2= sp1_clustID.y) %>% 
-  #mutate(clust_pair= str_c(sp1_clustID.1, sp1_clustID.2, sep= "-"),
-  #       clust_match = ifelse(sp1_clustID.1 == sp1_clustID.2, "Yes", "No")) %>% 
   # DREP ANI JOIN
   left_join(., sp1.ani) %>% 
+  # SNV_MBP JOIN
+  left_join(., snv_genomes, by= c("name1" = "ggkbase_id")) %>% 
+  left_join(., snv_genomes, by= c("name2" = "ggkbase_id")) %>% 
+  rename(pop_age.1= pop_age.x, pop_age.2= pop_age.y,
+         SNV_mbp.1= SNV_mbp.x, SNV_mbp.2= SNV_mbp.y) %>% 
+  mutate(pop_age_pair= str_c(pop_age.1, pop_age.2, sep= "-")) %>%
+  mutate(pop_age_pair= ifelse(pop_age_pair == "Young-Old", "Old-Young", pop_age_pair)) %>% 
   # RIVER DISTANCE JOIN
   left_join(., ani.riv.dist, by= c("name1", "name2")) %>% 
   left_join(., ani.riv.dist, by= c("name1" = "name2", "name2" = "name1")) %>% 
@@ -163,6 +172,7 @@ ani_sum <- comp_sp1.F %>%
   mutate(pi_diff_mean = abs(mean_pi.1 - mean_pi.2),
          pi_avg_mean = rowMeans(cbind(.$mean_pi.1, .$mean_pi.2)),
          pi_avg_median = rowMeans(cbind(.$median_pi.1, .$median_pi.2))) %>% 
+  mutate(watershed_diff= abs(watershed_2 - watershed_1)) %>% 
   select(-contains(".x"), -contains(".y"))
 
 #write_tsv(ani_sum, "Output_tables/ani_summary.tsv")
@@ -298,6 +308,18 @@ ggplot(ani_sum, aes(x= mean_conANI)) +
 ggsave(last_plot(), filename = "conANI_histogram.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 
+ggplot(ani_sum, aes(x= mean_popANI)) +
+  geom_histogram(binwidth= 0.0005, boundary= 1, fill= "black", color= "gray75") +
+  labs(x= "Mean population ANI", y= "Count") +
+  scale_x_continuous(limits= c(0.987, 1),
+                     breaks= seq(0.987, 1, by= 0.001),
+                     expand= c(0, 0)) +
+  scale_y_continuous(expand= c(0, 0)) +
+  theme_strains
+ggsave(last_plot(), filename = "popANI_histogram.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
+       path= "Output_figures")
+
+
 ggplot(ani_sum) +
   geom_boxplot(aes(x= "popANI", y= mean_popANI, fill= clust_match)) +
   geom_boxplot(aes(x= "conANI", y= mean_conANI))
@@ -430,6 +452,26 @@ ggplot(data= ani_sum) +
 ggsave(last_plot(), filename = "popANI_conANI_NucDiv.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 
+ggplot(data= ani_sum) +
+  geom_abline(intercept= 0, slope= 1, size= 0.25, linetype= "dashed") +
+  geom_point(aes(x= mean_conANI, y= mean_popANI, fill= pop_age_pair), pch= 21, size= 3, color= "gray30") +
+  labs(x= "Mean consensus ANI", y= "Mean population ANI") +
+  scale_x_continuous(limits= c(0.9875, 1),
+                     breaks= seq(.9880, 1, by= 0.001), 
+                     labels= c("0.988", "", "0.990", "", "0.992", "", "0.994", "", "0.996", "", "0.998", "", "1"),
+                     expand= c(0, 0)) +
+  scale_y_continuous(limits= c(0.9925, 1.0002),
+                     breaks= seq(.993, 1, by= 0.001), 
+                     labels= c("", "0.994", "", "0.996", "", "0.998", "", "1"),
+                     expand= c(0.00, 0)) +
+  scale_fill_viridis_d(name= "Pop. age") +
+  coord_equal() +
+  theme_strains +
+  theme(axis.text.x = element_text(angle= 45, hjust= 1),
+        legend.position = "top")
+#legend.key.width= unit(10, "mm"),
+#legend.box= "vertical") 
+
 
 ggplot(data= ani_sum) +
   #geom_hline(yintercept= 0) +
@@ -463,6 +505,31 @@ ggplot(data= ani_sum) +
 ggsave(last_plot(), filename = "minor_alleles_NucDiv.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 
+ggplot(data= ani_sum) +
+  #geom_hline(yintercept= 0) +
+  #geom_point(aes(x= mean_conANI, y= 1 - frac_popSNPs, fill= mean_popANI), size= 3, pch= 21, color= "black") +
+  geom_point(aes(x= mean_conANI, y= 1 - frac_popSNPs, fill= pop_age_pair), pch= 21, size= 3,  color= "black") +
+  #labs(x= "Mean consensus ANI", y= "popANI sites / conANI sites") +
+  labs(x= "Mean consensus ANI", y= "% shared minor alleles") +
+  scale_x_continuous(limits= c(0.9875, 1),
+                     breaks= seq(.9880, 1, by= 0.001), 
+                     labels= c("0.988", "", "0.990", "", "0.992", "", "0.994", "", "0.996", "", "0.998", "", "1"),
+                     expand= c(0, 0)) +
+  # scale_y_continuous(limits= c(0, 0.84),
+  #                    breaks= seq(0, 1, by= 0.1), 
+  #                    #labels= c("", "0.9950", "0.9975", "1"),
+  #                    expand= c(0.02, 0)) +
+  # scale_y_continuous(limits= c(0, 1.02),
+  #                    breaks= seq(0, 1, by= 0.1),
+  #                    labels= c("0", "", "20", "", "40", "", "60", "", "80", "", "100"),
+  #                    expand= c(0, 0)) +
+  #scale_fill_manual(values= wes_palette("Royal1", n= 3), name= "dRep ANI",
+  #                  breaks= c(">0.995", "0.99-0.995", "<0.99")) +
+  scale_fill_viridis_d(name= "Pop. Age") +
+  theme_strains +
+  theme(#axis.text.x = element_text(angle= 45, hjust= 1),
+    legend.position = "top")
+#legend.key.width= unit(10, "mm")) 
 
 
 
@@ -506,10 +573,9 @@ ggsave(last_plot(), filename = "substitution_percent.png", height= 180*0.75, wid
 
 
 ggplot(data= ani_sum) +
-  #geom_point(aes(x= riv_dist, y= mean_popANI, fill= ani99_dRep), size= 3, pch= 21, color= "black") +
-  geom_point(aes(x= riv_dist, y= mean_popANI, fill= ani99_dRep, size= sum_con_sites), pch= 21, color= "black") +
+  geom_point(aes(x= riv_dist, y= mean_popANI), pch= 21, fill= "gray75", color= "black", size= 3) +
   labs(x= "River network distance (km)", y= "Mean population ANI") +
-  geom_smooth(aes(x= riv_dist, y= mean_popANI), method= "lm") +
+  geom_smooth(aes(x= riv_dist, y= mean_popANI), color= "black", fill= "dodgerblue", alpha= 0.3) +
   #scale_fill_npg(name= "dRep ANI") +
   scale_fill_manual(values= wes_palette("Royal1", n= 3), name= "dRep ANI",
                     breaks= c(">0.995", "0.99-0.995", "<0.99")) +
@@ -542,9 +608,10 @@ ggsave(last_plot(), filename = "popANI_frac_rivDist.png", height= 180*0.75, widt
 ggplot(data= ani_sum, aes(x= riv_dist, y= mean_conANI)) +
   #geom_point(aes(x= riv_dist, y= mean_popANI, fill= ani99_dRep), size= 3, pch= 21, color= "black") +
   geom_hline(yintercept = 0.9935, linetype= "dashed") +
-  geom_point(size= 3, pch= 21, fill= "gray75", color= "black") +
+ # geom_point(size= 3, pch= 21, fill= "gray75", color= "black") +
+  geom_point(aes(fill= watershed_diff), size= 3, pch= 21, color= "black") +
   #geom_smooth(color= "black", fill= "dodgerblue") +
-  geom_smooth(color= "black", fill= "dodgerblue", method= "lm") +
+  geom_smooth(color= "black", fill= "dodgerblue", alpha= 0.3) +
   labs(x= "River network distance (km)", y= "Mean consensus ANI") +
   #scale_fill_npg(name= "dRep ANI") +
   #scale_fill_manual(values= wes_palette("Royal1", n= 3), name= "dRep ANI",
@@ -557,6 +624,65 @@ ggplot(data= ani_sum, aes(x= riv_dist, y= mean_conANI)) +
   theme(legend.position = "top")
 ggsave(last_plot(), filename = "conANI_rivDist.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
+
+ggplot(data= ani_sum, aes(x= watershed_diff, y= mean_conANI)) +
+  #geom_point(aes(x= riv_dist, y= mean_popANI, fill= ani99_dRep), size= 3, pch= 21, color= "black") +
+  geom_point(size= 3, pch= 21, color= "black") +
+  #geom_smooth(color= "black", fill= "dodgerblue") +
+ # geom_smooth(color= "black", fill= "dodgerblue", alpha= 0.3) +
+#  labs(x= "River network distance (km)", y= "Mean consensus ANI") +
+  #scale_fill_npg(name= "dRep ANI") +
+  #scale_fill_manual(values= wes_palette("Royal1", n= 3), name= "dRep ANI",
+  #                  breaks= c(">0.995", "0.99-0.995", "<0.99")) +
+  # scale_x_continuous(limits= c(0, 350000),
+  #                    breaks= seq(0, 350000, by= 25000),
+  #                    labels= c("0", "", "50", "", "100", "", "150", "", "200", "", "250", "", "300", "", "350"),
+  #                    expand= c(0, 5000)) +
+  theme_strains +
+  theme(legend.position = "top")
+ggsave(last_plot(), filename = "conANI_rivDist.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
+       path= "Output_figures")
+
+
+
+ggplot(data= filter(ani_sum, riv_dist < 25000), aes(x= riv_dist/1000, y= mean_conANI)) +
+  #geom_point(aes(x= riv_dist, y= mean_popANI, fill= ani99_dRep), size= 3, pch= 21, color= "black") +
+  geom_hline(yintercept = 0.9935, linetype= "dashed") +
+  #geom_point(aes(fill= watershed_diff), size= 3, pch= 21, fill= "gray75", color= "black") +
+  geom_point(aes(fill= watershed_diff), size= 4, pch= 21, color= "black") +
+  #geom_smooth(color= "black", fill= "dodgerblue") +
+  #geom_smooth(color= "black", fill= "dodgerblue", alpha= 0.3) +
+  labs(x= "River network distance (km)", y= "Mean consensus ANI") +
+  scale_fill_viridis_c(name= "Watershed difference (km2)") +
+  scale_x_continuous(expand= c(0.02, 0)) +
+  # scale_x_continuous(limits= c(0, 350000),
+  #                    breaks= seq(0, 350000, by= 25000),
+  #                    labels= c("0", "", "50", "", "100", "", "150", "", "200", "", "250", "", "300", "", "350"),
+  #                    expand= c(0, 5000)) +
+  theme_strains +
+  theme(legend.position = "top")
+ggsave(last_plot(), filename = "conANI_rivDist_25km.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
+       path= "Output_figures")
+
+
+ggplot(data= ani_sum, aes(x= riv_dist, y= watershed_diff)) +
+  # geom_point(size= 3, pch= 21, fill= "gray75", color= "black") +
+  geom_point(aes(fill= mean_conANI, size= mean_conANI), pch= 21, color= "black") +
+#  geom_smooth(color= "black", fill= "dodgerblue", alpha= 0.3) +
+  #labs(x= "River network distance (km)", y= "Mean consensus ANI") +
+  scale_fill_viridis_c(name= "Mean conANI") +
+
+  scale_x_continuous(limits= c(0, 350000),
+                     breaks= seq(0, 350000, by= 25000),
+                     labels= c("0", "", "50", "", "100", "", "150", "", "200", "", "250", "", "300", "", "350"),
+                     expand= c(0, 5000)) +
+  theme_strains +
+  theme(legend.position = "top")
+ggsave(last_plot(), filename = "conANI_rivDist.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
+       path= "Output_figures")
+
+
+
 
 
 
