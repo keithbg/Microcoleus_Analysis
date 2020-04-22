@@ -3,6 +3,7 @@ library(tidygraph)
 library(ggplot2)
 library(ggraph)
 library(wesanderson)
+library(cowplot)
 
 ## Watershed area data
 dir_input_watershed <- "/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/EnvData"
@@ -77,12 +78,16 @@ high_conANI_network %>%
   count(pop_age)
 
 
-ggraph(high_conANI_network, layout= 'igraph', algorithm= "kk") + 
+conANI_network <- ggraph(high_conANI_network, layout= 'igraph', algorithm= "kk") + 
   #geom_edge_link(edge_width= 0.25, color= "gray50") + 
   geom_edge_link(edge_width= 1, aes(color= log10(riv_dist))) + 
   geom_node_point(aes(fill= pop_age), size= 3, pch=21, color= "black") + 
   #geom_node_point(aes(size= as.character(degree))) + 
   geom_node_text(aes(label = label), repel = TRUE, size= 2) +
+  annotate(geom= "text", x= -4, y= 2, label= "Sub-network 1", angle= 55) +
+  annotate(geom= "text", x= 3.7, y= 1.6, label= "Sub-network 2", angle= -55) +
+  annotate(geom= "text", x= 4, y= -1, label= "Sub-network 3", angle= -25) +
+  annotate(geom= "text", x= 3.5, y= -6.2, label= "Sub-network 4", angle= 0) +
   scale_edge_color_viridis(option= "plasma",
                            #label= c("10", "100", "1,000", "10,000", "100,000"),
                            breaks= c(-2,  -1, 0, 1, 2, 3, 4, 5),
@@ -92,8 +97,9 @@ ggraph(high_conANI_network, layout= 'igraph', algorithm= "kk") +
                      values= wes_palette("Royal1")[c(1, 3)],
                      name= "Population\nage") +
   theme_graph()
+conANI_network
 
-ggsave(last_plot(), filename = "network_conANI9935.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
+ggsave(conANI_network, filename = "network_conANI9935.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 
 
@@ -192,7 +198,7 @@ dir_latlong <- file.path("/Users","kbg","Documents","UC_Berkeley","CyanoMeta_NSF
 latlong <- read_csv(file.path(dir_latlong, "PhormMeta17_LatLong_combined.csv")) %>%
   mutate(year= as.character(year))
 
-high_conANI_map <- high_conANI %>% 
+high_conANI_map_df <- high_conANI %>% 
   select(name1, name2) %>% 
   mutate(nodes_id= str_c(name1, name2, sep= "-")) %>% 
   pivot_longer(names_to = "node", values_to = "ggkbase_id", name1:name2) %>% 
@@ -203,19 +209,32 @@ high_conANI_map_labels <- high_conANI_map %>%
   select(long, lat, ggkbase_id) %>% 
   distinct()
 
-PH2017_eel_base_map +
+high_conANI_map <- PH2017_eel_base_map +
   geom_point(data= latlong, aes(x= long, y= lat), size= 3, pch=21, fill= "gray75", color= "black") +
-  geom_line(data= high_conANI_map, aes(x= long, y= lat, group= nodes_id), color= "black", size= 0.3) +
-  geom_point(data= high_conANI_map, aes(x= long, y= lat, fill= as.character(importance_high)), size= 4, pch= 21, color= "black") +
+  geom_line(data= high_conANI_map_df, aes(x= long, y= lat, group= nodes_id), color= "black", size= 0.3) +
+  geom_point(data= high_conANI_map_df, aes(x= long, y= lat, fill= as.factor(importance_high), size= importance_high), pch= 21, color= "black") +
   #geom_label_repel(data= high_popANI_map_labels, aes(x= long, y= lat, label= ggkbase_id)) +
-  scale_fill_viridis_d(name= "Node degreeness", direction= 1, begin= 0.2, option= "magma") +
-  scale_size_continuous(guide = FALSE) +
-  PH2017_map_theme
-ggsave(last_plot(), filename = "network_map_conANI9935.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
+  scale_fill_viridis_d(name= "Node connections", direction= 1, begin= 0.2, option= "magma") +
+  scale_size_continuous(guide= FALSE) +
+  guides(fill = guide_legend(override.aes = list(size=5)))
+  PH2017_map_theme 
+  high_conANI_map
+ggsave(high_conANI_map, filename = "network_map_conANI9935.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
         path= "Output_figures")
 
+test <- plot_to_gtable(high_conANI_network)
+
+high_conANI_combined <- plot_grid(conANI_network,
+          high_conANI_map,
+          nrow= 2,
+          labels= c("A", "B"), 
+          rel_heights = c(1, 1))
+high_conANI_combined
 
 
+
+
+high_conANI_combined
 
 high_popANI_map <- high_popANI %>% 
   select(name1, name2) %>% 

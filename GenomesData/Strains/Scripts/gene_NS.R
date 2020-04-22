@@ -11,6 +11,8 @@
 library(tidyverse)
 library(ggplot2)
 library(ggrepel)
+library(cowplot)
+library(ggsci)
 
 
 #### INPUT FILES ####
@@ -94,13 +96,16 @@ source("Scripts/ggplot_themes.R")
 
 
 ## SNVs_mbp X NS ratio
-ggplot(data= snvs_genome_df, aes(x= SNV_mbp, y= NS)) +
+
+
+
+SNV_NS_plot <- ggplot(data= snvs_genome_df, aes(x= SNV_mbp, y= NS)) +
   geom_vline(xintercept= 1550, color= "gray50", size= 0.5, linetype= "dashed") +
   #geom_point(aes(fill= species, shape= species), size= 4, color= "gray40") +
   geom_point(aes(fill= species, shape= species, size= cov_mean), color= "gray40") +
-  geom_text(aes(x= 750, y= 2.4, label = "Young \npopulations", hjust= "middle")) +
-  geom_text(aes(x= 2500, y= 2.4, label = "Old \npopulations", hjust= "middle")) +
-  labs(x= "SNVs / mbp", y= "N:S ratio") +
+  geom_text(aes(x= 100, y= 0.25, label = "Young \npopulations", hjust= "left")) +
+  geom_text(aes(x= 1650, y= 0.25, label = "Old \npopulations", hjust= "left")) +
+  labs(x= "SNVs / Mbp", y= "N:S ratio") +
   scale_x_continuous(limits= c(0, 8500),
                      breaks= seq(0, 8000, by= 1000), 
                      labels= c("0", "", "2000", "", "4000", "", "6000", "", "8000"),
@@ -116,6 +121,8 @@ ggplot(data= snvs_genome_df, aes(x= SNV_mbp, y= NS)) +
   scale_size_continuous(name= "Mean site \ncoverage",
                         breaks= c(50, 100, 200, 300, 400)) +
   theme_strains
+SNV_NS_plot
+
 ggsave(last_plot(), filename = "snv_mbp.pdf", height= 180*0.75, width= 180, units= "mm", device= cairo_pdf,
        path= "Output_figures")
 ggsave(last_plot(), filename = "snv_mbp.jpg", height= 180*0.75, width= 180, units= "mm", dpi= 320,
@@ -125,13 +132,13 @@ table(snvs_genome_df$pop_age, snvs_genome_df$watershed_km2 < 500, snvs_genome_df
 table(snvs_genome_df$species)
 
 ## SNVs_mbp X Watershed area
-ggplot(data= snvs_genome_df, aes(x= watershed_km2, y= SNV_mbp)) +
+SNV_km2_plot <- ggplot(data= snvs_genome_df, aes(x= watershed_km2, y= SNV_mbp)) +
   geom_hline(yintercept= 1550, color= "gray50", size= 0.5, linetype= "dashed") +
   geom_point(aes(fill= species, size= cov_mean, shape= species), color= "gray40") +
-  geom_smooth(se= FALSE) +
-  geom_text(aes(x= 1.1, y= 1000, label = "Young \npopulations", hjust= "left")) +
-  geom_text(aes(x= 1.1, y= 2000, label = "Old \npopulations", hjust= "left")) +
-  labs(x= expression('Watershed area (km'^"2"*")"), y= "SNVs mbp") +
+#  geom_smooth(se= FALSE, color= "black") +
+  geom_text(aes(x= 1.1, y= 950, label = "Young \npopulations", hjust= "left"), ) +
+  geom_text(aes(x= 1.1, y= 2300, label = "Old \npopulations", hjust= "left")) +
+  labs(x= expression('Watershed area (km'^"2"*")"), y= "SNVs / Mbp") +
   scale_x_log10(limits= c(1, 10000),
                 expand= c(0, 0)) +
   annotation_logticks(sides= "b") +
@@ -144,12 +151,56 @@ ggplot(data= snvs_genome_df, aes(x= watershed_km2, y= SNV_mbp)) +
   scale_size_continuous(name= "Mean site \ncoverage",
                         breaks= c(50, 100, 200, 300, 400)) +
   theme_strains
-
+SNV_km2_plot
 ggsave(last_plot(), filename = "snv_mbp_km2.pdf", height= 180*0.75, width= 180, units= "mm", device= cairo_pdf,
        path= "Output_figures")
 ggsave(last_plot(), filename = "snv_mbp_km2.jpg", height= 180*0.75, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 
+
+SNV_legend <- get_legend(
+  # create some space to the left of the legend
+  SNV_NS_plot + 
+    theme(legend.box.margin = margin(0, 0, 0, 0, unit= "cm"),
+          legend.box.background  = element_rect(color= "transparent"),
+          legend.background = element_rect(color= "transparent"),
+          legend.key.size = unit(15, "pt"),
+          legend.box.just = "left") +
+    guides(fill = guide_legend(order = 1, override.aes = list(size = 3)), 
+           shape= guide_legend(order = 1), 
+           size = guide_legend(order = 2))
+)
+SNV_plot_combined <- plot_grid(SNV_NS_plot + theme(legend.position="none"),
+                               SNV_km2_plot + theme(legend.position="none"),
+                               ncol= 1,
+                               labels= c("A", "B"),
+                               align= "v")
+
+
+SNV_plot_combined
+
+
+SNV_plot_combined_legend <- plot_grid(SNV_plot_combined, SNV_legend,
+          rel_widths = c(1, 0.2))
+
+
+ggsave(SNV_plot_combined_legend, filename = "snv_mbp_combined.png", height= 180, width= 180, units= "mm", dpi= 320,
+       path= "Output_figures")
+
+
+prow <- plot_grid(
+  p1 + theme(legend.position="none"),
+  p2 + theme(legend.position="none"),
+  p3 + theme(legend.position="none"),
+  align = 'vh',
+  labels = c("A", "B", "C"),
+  hjust = -1,
+  nrow = 1
+)
+
+
+
+?plot_grid
 
 
 ggplot(data= snvs_genome_df, aes(x= pop_age, y= watershed_km2)) +

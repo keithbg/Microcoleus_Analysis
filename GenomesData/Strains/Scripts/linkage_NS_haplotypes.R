@@ -1,6 +1,7 @@
 ## linkage_NS.tsv file created in linkage_NS_format.R script
 
 library(tidyverse)
+library(ggplot2)
 
 link <- read_tsv("inStrain/linkage_NS.tsv") %>% 
   filter((mutation_type_A == "N" | mutation_type_A == "S") & (mutation_type_B == "N" | mutation_type_B == "S")) %>% 
@@ -24,13 +25,22 @@ link_sum <- link %>%
 #  filter(str_detect(scaffold, "PH2015_13D"))
 
 ## HAPLOTYPES
+link.species %>% 
+  group_by(sample, species) %>% 
+  summarize(n= length(haplotype)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x= species, y= n)) +
+  scale_y_log10() +
+  theme_bw()
+
 
 haplo.freq <- link.species %>% 
   group_by(site, sample, species, multiple_species, haplotype) %>% 
   summarize(n= length(haplotype)) %>% 
-  mutate(freq= n/sum(n))
+  mutate(freq= n/sum(n)) %>% 
+  ungroup()
 
-write_tsv(haplo.freq, path= "inStrain/output_tables/haplotype_freqs.tsv")
+#write_tsv(haplo.freq, path= "inStrain/output_tables/haplotype_freqs.tsv")
 
 
 
@@ -140,8 +150,22 @@ ggplot(data= haplo.freq, aes(x= freq)) +
   theme_strains
 ggsave(last_plot(), filename= "haplotype_freqs_histogram.png", path= "Output_figures", width= 8, height= 6, units= "in", dpi= 320)
 
-
-
+ggplot(data= haplo.freq, aes(x= haplotype, y= freq)) +
+  geom_boxplot(aes(fill= haplotype)) +
+  labs(x= "Haplotype", y= "Frequency") +
+  scale_x_discrete(labels= c("H1", "H2", "H3", "H4")) +
+  scale_y_continuous(limits= c(0, 1), 
+                     breaks= seq(0, 1, by= 0.1),
+                     labels= c("0", "0.1",  "0.2",  "0.3", "0.4",  "0.5",
+                               "0.6", "0.7",  "0.8",  "0.9",  "1.0"),
+                     expand= c(0.01, 0)) +
+  scale_fill_manual(values= wes_palette("FantasticFox1")[2:5],
+                    guide= FALSE) +
+  facet_grid(.~species, scales= "free_y", labeller= labeller(species = as_labeller(c(`species_1` = "Species 1",
+                                                                                     `species_2` = "Species 2",
+                                                                                     `species_3` = "Species 3")))) +
+  theme_strains
+ggsave(last_plot(), filename= "haplotype_freqs_boxplot.png", path= "Output_figures", width= 8, height= 6, units= "in", dpi= 320)
 
 
 ggplot(data= filter(link_sum, haplotype == "h4"), aes(x= distance, y= Dprime_norm_mean)) +
