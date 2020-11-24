@@ -65,6 +65,10 @@ species.colors <- ggsci::pal_npg("nrc")(3)[c(3, 1, 2)]
 #species.colors <- c("black", "tomato", "dodgerblue")
 species.shapes <- c(21, 22, 24)
 
+## Year colors
+year.fill.colors <- pal_npg("nrc")(9)[c(1, 4, 7)]
+year.colors <- pal_npg("nrc")(9)[c(1, 4, 7)]
+
 
 # scale_color_manual(values= c("black", "tomato", "dodgerblue"),
 #                    labels= c("1", "2", "3"),

@@ -2,7 +2,7 @@
 
 library(tidyverse)
 library(ggplot2)
-source("Scripts_manuscript/Fig_2_data.R")
+source("Scripts_manuscript/ANI_scaffold_data.R")
 source("Scripts_manuscript/ggplot_themes.R")
 
 
