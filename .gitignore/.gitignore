@@ -6,6 +6,8 @@ EnvData/RussianRiver_Hydrologic_Data.gdb
 Old_GenomesAnalyses/
 QB3/
 Output_Figures/
+GenomesData/
+ToxinData/
 
 ## File types
 *.xlsx
@@ -15,6 +17,7 @@ Output_Figures/
 *.freq
 *.linkage
 *.pNpS
+*.DS_Store
 
 
 ## DNA files
