@@ -4,8 +4,6 @@
 # Drainage area column for Russian = TotDASqKM
 # Drainage area column for Eel = CUMDRAINAG
 
-setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis")
-
 
 #### Libraries #################################################################
 library(tidyverse)
