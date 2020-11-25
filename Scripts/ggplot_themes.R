@@ -32,6 +32,17 @@ theme_strains <- theme(panel.grid = element_blank(),
 )
 
 
+PH2017_map_theme <- theme(plot.margin= margin(0.2, 0.2, 0.2, 0.2, unit= "cm"),
+                          text= element_text(size= 10),
+                          panel.background = element_rect(fill= "#c7cee7"),
+                          panel.border = element_rect(color= "black", fill= NA),
+                          legend.key= element_rect(fill= "transparent"),
+                          legend.background = element_rect(fill= "transparent"),
+                          plot.background = element_rect(fill= "transparent", color= NA),
+                          panel.grid.minor = element_blank(),
+                          panel.grid.major = element_blank()
+)
+
 
 theme_freshSci <- theme(panel.grid = element_blank(),
                         plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
