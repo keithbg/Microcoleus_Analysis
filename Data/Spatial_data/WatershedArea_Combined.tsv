@@ -1,0 +1,63 @@
+long	lat	ggkbase_id	acronym	description	year	us_ds	number	fork	watershed_km2
+-123.98452	40.431328	PH2017_17_BER_D_A	BER	Bear Creek downstream of US101	2017	N	17	cr	22
+-123.708794	39.839245	PH2015_04D	CCC	Cedar Creek Confluence DS	2015 & 2017	Y	4	cr	39
+-123.708121	39.839398	PH2015_04U	CCC	Cedar Creek Confluence US	2015 & 2017	Y	4	cr	39
+-123.70897	39.8392193	PH2017_05_CCC_O_A	CCC	Cedar Creek upstream of confluence with South Fork Eel	2015 & 2017	Y	5	cr	39
+-123.707179	39.840528	PH2015_03D	CCW	Cedar Creek Weir DS	2015	Y	3	cr	39
+-123.706355	39.841178	PH2015_03U	CCW	Cedar Creek Weir US	2015	Y	3	cr	39
+-123.769561	40.193404	PH2015_08D	CHT	Chimney Tree Downstream	2015	Y	8	sf	1417
+-123.769683	40.192667	PH2015_08U	CHT	Chimney Tree Upstream	2015	Y	8	sf	1417
+-123.589207	40.191435	PH2015_11S	DOB	Dobbyn Creek AP Bridge	2015 & 2017	N	11	cr	96
+-123.58914	40.1915226	PH2017_24_DOB_U_A	DOB	Dobbyn Creek near Alderpoint upstream	2015 & 2017	Y	24	cr	96
+-123.58914	40.1915226	PH2017_25_DOB_D_A	DOB	Dobbyn Creek near Alderpoint downstream	2015 & 2017	Y	25	cr	96
+-123.633139	40.235254	PH2015_12D	DOF	Dobbyn Creek FS DS	2015	Y	12	cr	160
+-123.633017	40.235152	PH2015_12U	DOF	Dobbyn Creek FS US	2015	Y	12	cr	160
+-123.647095	39.728998	PH2015_01D	ELD	Elder Creek DS	2015 & 2017	Y	1	cr	17
+-123.646925	39.728886	PH2015_01U	ELD	Elder Creek US	2015 & 2017	Y	1	cr	17
+-123.64657	39.7289656	PH2017_03_ELD_O_A	ELD	Elder Creek upstream of Angelo Rd.	2015 & 2017	Y	3	cr	17
+-123.85462	40.2794342	PH2017_26_ELK_O_A	ELK	South Fork Eel downstream of Elk Creek #1	2017	Y	26	sf	1590
+-123.85462	40.2794342	PH2017_36_ELK_O_B	ELK	South Fork Eel downstream of Elk Creek #2	2017	N	36	sf	1590
+-123.63161	39.7402525	PH2017_02_FOX_O_A	FOX	Fox Creek at Angelo Rd. bridge	2017	N	2	cr	2.8
+-123.935306	40.420417	PH2015_14S	HMF	Holmes Flat	2015	N	14	le	7908
+-124.03752	40.4418634	PH2017_15_JOR_U_A	JOR	Jordan Creek downstream of US101 upstream	2017	Y	15	cr	12.2
+-124.03752	40.4418634	PH2017_16_JOR_D_A	JOR	Jordan Creek downstream of US101 downstream	2017	Y	16	cr	12.2
+-123.932445	40.408798	PH2015_13D	LAR	Larabee Creek Downstream	2015 & 2017	Y	13	cr	228
+-123.931425	40.409047	PH2015_13U	LAR	Larabee Creek Upstream	2015 & 2017	Y	13	cr	228
+-123.93194	40.4096247	PH2017_13_LAR_U_A	LAR	Larabee Creek upstream	2015 & 2017	Y	13	cr	228
+-123.93194	40.4096247	PH2017_14_LAR_D_A	LAR	Larabee Creek downstream	2015 & 2017	Y	14	cr	228
+-123.725835	39.875414	PH2015_05S	LEG	Leggett	2015	N	5	sf	653
+-123.7218	39.8644709	PH2017_33_LGB_O_A	LGB	South Fork Eel downstream of US 1 bridge at Leggett  #1	2017	N	33	sf	642
+-123.7218	39.8644709	PH2017_39_LGB_O_B	LGB	South Fork Eel downstream of US 1 bridge at Leggett  #2	2017	N	39	sf	642
+-123.78155	40.4782684	PH2017_18_LLB_O_A	LLB	Little Larabee Creek at confluence with Van Duzen River	2017	N	18	cr	34.5
+-123.802854	39.973777	PH2015_06S	LUM	Lumber Bridge	2015 & 2017	N	6	sf	795
+-123.80284	39.9737974	PH2017_27_LUM_O_A	LUM	South Fork Eel at Lumber Bridge	2015 & 2017	N	27	sf	795
+-123.090056	39.824689	PH2015_10S	MFB	Middle Fork @ Black Butte	2015	N	10	mf	951
+-123.072097	39.828922	PH2015_09S	MFU	Middle Fork USGS	2015 & 2017	Y	9	mf	531
+-123.07069	39.8288987	PH2017_28_MFU_U_A	MFU	Middle Fork Eel at USGS gauge above Blacke Butte upstream	2015 & 2017	Y	28	mf	531
+-123.07069	39.8288987	PH2017_29_MFU_D_A	MFU	Middle Fork Eel at USGS gauge above Blacke Butte downstream #1	2015 & 2017	Y	29	mf	531
+-123.07069	39.8288987	PH2017_37_MFU_D_B	MFU	Middle Fork Eel at USGS gauge above Blacke Butte downstream #2	2015 & 2017	Y	37	mf	531
+-123.06467	39.374281	PH2017_07_MST_O_A	MST	Mainstem Eel downstream of Trout Creek	2017	N	7	ms	885
+-123.786991	40.00026	PH2015_07D	PCY	Piercy Downstream	2015 & 2017	Y	7	sf	881
+-123.793539	39.999625	PH2015_07U	PCY	Piercy Upstream	2015 & 2017	Y	7	sf	881
+-123.78743	40.0003455	PH2017_11_PCY_U_A	PCY	South Fork Eel at Piercy upstream	2015 & 2017	Y	11	sf	881
+-123.78743	40.0003455	PH2017_12_PCY_D_A	PCY	South fork Eel at Piercy downstream	2015 & 2017	Y	12	sf	881
+-123.78859	40.2052522	PH2017_10_PVI_O_A	PVI	South Fork Eel at Phillipsville	2017	N	10	sf	1426
+-123.57751	39.8285573	PH2017_34_RAT_O_A	RAT	Rattlesnake Creek #1	2017	N	34	cr	50
+-123.57751	39.8285573	PH2017_40_RAT_O_B	RAT	Rattlesnake Creek #2	2017	N	40	cr	50
+-123.75929	39.9293413	PH2017_31_RDM_U_A	RDM	Red Mountain Creek upstream #1	2017	Y	31	cr	31
+-123.75929	39.9293413	PH2017_32_RDM_D_A	RDM	Red Mountain Creek downstream	2017	Y	32	cr	31
+-123.75929	39.9293413	PH2017_38_RDM_U_B	RDM	Red Mountain Creek upstream #2	2017	Y	38	cr	31
+-122.98785	38.7740323	PH2017_21_RUC_O_A	RUC	Russian River Cloverdale airport #1	2017	N	21	rr	1611
+-122.98785	38.7740323	PH2017_22_RUC_O_B	RUC	Russian River Cloverdale airport #2	2017	N	22	rr	1611
+-122.98785	38.7740323	PH2017_23_RUC_A_A	RUC	Russian River Cloverdale airport Anabaena	2017	N	23	rr	1611
+-123.710164	39.839711	PH2015_02D	SCD	SF@Cedar Creek DS	2015 & 2017	Y	2	sf	527
+-123.710094	39.839583	PH2015_02U	SCD	SF@Cedar Creek US	2015 & 2017	Y	2	sf	527
+-123.71033	39.8395823	PH2017_01_SCD_O_A	SCD	South Fork Eel downstream of Cedar Creek confluence	2015 & 2017	Y	1	sf	527
+-123.65351	39.7185914	PH2017_04_SCI_O_A	SCI	South Fork Eel at Angelo Science Center	2017	N	4	sf	114
+-123.61621	39.6445109	PH2017_06_SFM_O_A	SFM	South Fork Eel upstream of Mud Creek confluence	2017	N	6	sf	40
+-123.77201	40.1866578	PH2017_09_SFU_O_A	SFU	South Fork Eel downstream of Miranda USGS gauge	2017	N	9	sf	1392
+-123.63251	39.7402942	PH2017_19_SFW_U_A	SFW	South Fork Eel upstream of Wilderness Pool at Angelo upstream #1	2017	Y	19	sf	150
+-123.63251	39.7402942	PH2017_20_SFW_D_A	SFW	South Fork Eel upstream of Wilderness Pool at Angelo downstream	2017	Y	20	sf	150
+-123.63251	39.7402942	PH2017_35_SFW_U_B	SFW	South Fork Eel upstream of Wilderness Pool at Angelo upstream #2	2017	Y	35	sf	150
+-123.06486	39.3770439	PH2017_08_TRC_O_A	TRC	Trout Creek upstream of Rd. 240	2017	N	8	cr	4.6
+-123.13527	39.8200659	PH2017_30_WIL_O_A	WIL	Williams Creek	2017	N	30	cr	80
