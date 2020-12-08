@@ -25,7 +25,7 @@ kml_input <- file.path("Data", "Spatial_data")
 #### FORMAT DATA ################################################################
 
 ## River networks
-river.network.format <- function(shp_pathway, drainage_column= NA, min_drainage_area= 0, crs_code){
+river.network.format <- function(shp_pathway, drainage_column= NA, min_drainage_area= 0, crs_code= NA){
   require(sf)
   
   ## Read in shapefile
@@ -34,13 +34,14 @@ river.network.format <- function(shp_pathway, drainage_column= NA, min_drainage_
   ## Filter by drainage area
   if(min_drainage_area > 0){
     print(paste("Removing drainage areas <", min_drainage_area))
-    river.network.sf.filt <- filter(river.network.sf, get(drainage_column) > 20)
+    river.network.sf.filt <- filter(river.network.sf, get(drainage_column) > min_drainage_area)
   }
   
-  ## Transform to UTM 10
-  river.network.sf.filt.utm10 <- st_transform(river.network.sf.filt, crs= crs_code) 
+  ## Transform CRS
+  if(is.na(crs_code) == FALSE)
+  river.network.sf.filt.transform <- st_transform(river.network.sf.filt, crs= crs_code) 
   
-  return(river.network.sf.filt.utm10)
+  return(river.network.sf.filt.transform)
 }
 
 
