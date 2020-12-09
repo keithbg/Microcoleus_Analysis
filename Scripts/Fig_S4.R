@@ -1,13 +1,8 @@
-setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains")
-
+#setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis")
 
 library(tidyverse)
 library(ggplot2)
-library(lme4)
-library(lmerTest)
 source("Scripts/ggplot_themes.R")
-source("Scripts/ANI_scaffold_data.R")
-#library(MASS)
 
 ## Function to reformat sample names for comparisons between ANI and environmental data
 extract_envID <- function(x){
@@ -24,26 +19,24 @@ extract_envID <- function(x){
 
 #### IMPORT DATA ####
 ## ANI data
-#ani <- read_tsv("Output_tables/ani_summary.tsv") %>% 
-ani <- ani_sum %>% # ani_sum generated in ANI_scaffold_data.R
+ani <- read_tsv("Data/inStrain_data/ani_summary.tsv") %>% # ani_summary.tsv generated in ANI_scaffold_data.R
   mutate(envID1= do.call(rbind, map(name1, extract_envID))[, 1],
          envID2= do.call(rbind, map(name2, extract_envID))[, 1],
          compID= str_c(envID1, envID2, sep= "-"))
 
 ## PH2015 environmental data
-dir_input <- file.path("/Users","kbg","Documents","UC_Berkeley","CyanoMeta_NSF","Metagenomics", "Microcoleus_Analysis","EnvData")
-env15 <- read_tsv(file.path(dir_input, "PH2015_env_data.tsv")) %>% 
+env15 <- read_tsv(file.path("Data/Env_data", "PH2015_env_data.tsv")) %>% 
   mutate(NPOC_mgL= NPOC_mgL*1000,
          cond= cond/1000,
          canopy_avg= canopy_avg*100) %>% 
   rename(cond_ms= cond,do_mgL= DO_mgL, canopy_cover_percent= canopy_avg, DOC_ugL= NPOC_mgL, temp= temp_c, alk= Alk) %>% 
   dplyr::select(-original_sampleID)
 
-## PH2017 Environmental data
-env17 <- read_tsv(file.path(dir_input, "env_data_formated.tsv"))
+## PH2017 environmental data
+env17 <- read_tsv(file.path("Data/Env_data", "PH2017_env_data_formated.tsv"))
 
 ## NorWest Temperature data
-norwest <- read_tsv(file.path(dir_input, "temps_NorWest.tsv"))
+norwest <- read_tsv(file.path("Data/Env_data", "temps_NorWest.tsv"))
 
 ## Combine all temperature data
 env <- full_join(env15, env17)
@@ -89,14 +82,10 @@ env.labels <- as_labeller(c(`alk` = "Alkalinity", `canopy_cover_percent` = "Cano
 
 env.watershed <- ggplot(ani.env.plotting, aes(x= watershed_diff + 0.1, y= diff)) +
   geom_point(aes(fill= year), pch= 21, color= "black", alpha= 0.3) +
-  #scale_color_startrek(name= "Year comparison") +
   scale_fill_manual(values= year.fill.colors, name= "Year comparison") +
   scale_color_manual(values= year.colors, name= "Year comparison") +
-  #scale_shape_discrete(name= "Year comparison") +
   labs(x= expression("Watershed difference (km"^2*")"), y= "Pairwise parameter difference") +  
-  #geom_smooth(method= "lm", color= "black") +
   geom_smooth(aes(color= year), size= 2, method= "lm", se= FALSE) +
-  #geom_smooth(color= "black", size= 2.5, method= "lm", se= FALSE) +
   scale_x_log10() +
   annotation_logticks(side= "b") +
   facet_wrap(~metric, ncol= 2, scales= "free_y", labeller = labeller(metric= env.labels)) +
@@ -112,7 +101,6 @@ env.conANI <- ggplot(filter(ani.env.plotting, metric != "alk",  metric != "DOC_u
   geom_point(aes(fill= year), pch= 21, color= "black", alpha= 0.3) +
   scale_fill_manual(values= year.fill.colors, name= "Year comparison") +
   scale_color_manual(values= year.colors, name= "Year comparison") +
-  #scale_color_startrek() +
   scale_y_continuous(breaks= seq(0.9875, 1, by=0.0025), labels= c("", "0.990", "", "0.995", "", "1.000")) +
   labs(x= "Pairwise parameter difference", y= "Consensus ANI") +  
   geom_smooth(aes(color= year),size= 2, method= "lm", se= FALSE) +
@@ -158,38 +146,42 @@ ggsave(env.plot.combined2, filename = "Fig_S4.png", dpi= 320, height= 180*1.2, w
 
 
 
-#### STATISTICS ####
-plot(log(mean_conANI) ~ diff, filter(ani.env, metric == "cond_ms"))
+#### CONSENSUS ANI STATISTICS ####
+filter(ani.env, metric == "canopy_cover_percent") %>% 
+  plot(log(mean_conANI) ~ diff, data= .)
+
+fitCon.canopy <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "canopy_cover_percent"))
+summary(fitCon.canopy)
+anova(fitCon.canopy)
+
+
+filter(ani.env, metric == "cond_ms") %>% 
+plot(log(mean_conANI) ~ diff, data= .)
+
 fitCon.cond <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "cond_ms"))
 summary(fitCon.cond)
 anova(fitCon.cond)
 plot(fitCon.cond)
 
 
-fitKM2.ph <- lm(sqrt(diff) ~ watershed_diff, filter(ani.env, metric == "pH"))
-summary(fitKM2.ph)
-plot(fitCon.cond)
+filter(ani.env, metric == "TDN_ugL") %>% 
+  plot(log(mean_conANI) ~ diff, data= .)
 
-fitKM2.temp <- lm(sqrt(diff) ~ watershed_diff, filter(ani.env, metric == "temp"))
-summary(fitKM2.temp)
-plot(fitKM2.temp)
+fitCon.TDN <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "TDN_ugL"))
+summary(fitCon.TDN)
+anova(fitCon.TDN)
 
-fitKM2.cond <- lm(sqrt(diff) ~ watershed_diff, filter(ani.env, metric == "cond_ms"))
-summary(fitKM2.temp)
-plot(fitKM2.temp)
+filter(ani.env, metric == "TDP_ugL") %>% 
+  plot(log(mean_conANI) ~ diff, data= .)
 
-fit.conANI.cond <- lmer(log(mean_conANI) ~ scale(diff)*scale(watershed_diff) + (1|year), filter(ani.env, metric == "cond_ms"))
-summary(fit.conANI.cond)
-plot(fit.conANI.cond)
+fitCon.TDP <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "TDP_ugL"))
+summary(fitCon.TDP)
+anova(fitCon.TDP)
 
+filter(ani.env, metric == "temp_NorWest") %>% 
+  plot(log(mean_conANI) ~ diff, data= .)
 
-
-hist(sqrt(filter(ani.env, metric == "temp" & diff > 0)$diff))
-
-
-car::vif(fit.conANI.cond)
-test <- ani.env %>% 
-  
-  filter(metric == "canopy_cover_percent") %>% 
-  select(compID, watershed_diff, metric, diff)
+fitCon.NorWest <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "temp_NorWest"))
+summary(fitCon.NorWest)
+anova(fitCon.NorWest)
 

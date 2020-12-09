@@ -60,6 +60,59 @@ nucDiv.watershed.plot <- ggplot(data= gi_filt_summary, aes(x= watershed_km2, y= 
 #nucDiv.watershed.plot
 ###############################################################################
 
+#### popANI X WATERSHED AREA ##################################################
+ani_sum <- read_tsv("Data/inStrain_data/ani_summary.tsv") # ani_sum generated in ANI_scaffold_data.R
+
+#### FORMAT DATA ####
+## Watershed area data
+watershed.area.popANI <- read_tsv(file.path("Data", "Spatial_data", "WatershedArea_Combined.tsv")) %>%
+  select(ggkbase_id, watershed_km2)
+
+popANI.wide <- pivot_wider(select(ani_sum, name1, name2, mean_popANI), 
+                           names_from = name2, 
+                           values_from = mean_popANI) %>% 
+  ungroup() %>% 
+  mutate(PH2015_01D= NA) %>% 
+  select(name1, PH2015_01D, everything()) %>% 
+  add_row(., name1= "PH2017_40_RAT_O_B")
+
+gdata::lowerTriangle(popANI.wide[, -1]) <- gdata::upperTriangle(popANI.wide[, -1], byrow=TRUE)
+
+popANI.long <- pivot_longer(popANI.wide, names_to= "name2", values_to= "mean_popANI", -name1) %>% 
+  # WATERSHED AREA JOIN
+  left_join(., watershed.area.popANI, by= c("name1" = "ggkbase_id")) %>% 
+  left_join(., watershed.area.popANI, by= c("name2" = "ggkbase_id")) %>% 
+  rename(watershed_1= watershed_km2.x, watershed_2= watershed_km2.y)
+
+popANI.sum <- popANI.long %>% 
+  group_by(name1, watershed_1) %>% 
+  summarise(meanPOPani= mean(mean_popANI, na.rm=TRUE),
+            sdPOPani= sd(mean_popANI, na.rm=TRUE)) %>% 
+  ungroup()
+popANI.sum
+
+#### STATISTICS ####
+fit.popANI1 <- lm(meanPOPani ~ log10(watershed_1), data= popANI.sum)
+summary(fit.popANI1)
+plot(fit.popANI1)
+hist(log(popANI.sum$meanPOPani))
+
+#### FIGURE #####
+popANI_watershed <- ggplot(data= popANI.sum, aes(x= watershed_1, y= meanPOPani*100)) +
+  #geom_errorbar(aes(ymin= meanPOPani*100 - sdPOPani*100, ymax= meanPOPani*100 + sdPOPani*100), size= 0.2, color= "gray50") +
+  geom_point(shape= 21, fill= species.colors[1], color= "black", size= 3) +
+  labs(x= expression("Watershed area (km"^2*")"), y= "Mean population ANI (%)") +
+  scale_x_log10(limits=c(1, 2200),
+                expand= c(0, 0)) +
+  annotation_logticks(sides= "b") +
+  scale_y_continuous(breaks= seq(99.4, 99.8, by= 0.2),
+                     labels= c("99.4", "99.6", "99.8")) +
+  #labels= c(" 0.994", " 0.996", " 0.998")) +
+  theme_strains
+popANI_watershed
+###############################################################################
+
+
 
 #### SNV SHARING X WATERSHED AREA #############################################
 #source("Scripts/SNVS_analysis.R")
@@ -167,56 +220,6 @@ SNV_diss_watershed.m2
 
 
 
-#### popANI X WATERSHED AREA ##################################################
-source("Scripts/ANI_scaffold_data.R") # ani_sum generated in ANI_scaffold_data.R
-#ani_sum <- read_tsv("Output_tables/ani_summary.tsv")
-
-#### FORMAT DATA ####
-## Watershed area data
-watershed.area.popANI <- read_tsv(file.path("Data", "WatershedArea_Combined.tsv")) %>%
-  select(ggkbase_id, watershed_km2)
-
-popANI.wide <- pivot_wider(select(ani_sum, name1, name2, mean_popANI), 
-                           names_from = name2, 
-                           values_from = mean_popANI) %>% 
-  ungroup() %>% 
-  mutate(PH2015_01D= NA) %>% 
-  select(name1, PH2015_01D, everything()) %>% 
-  add_row(., name1= "PH2017_40_RAT_O_B")
-
-gdata::lowerTriangle(popANI.wide[, -1]) <- gdata::upperTriangle(popANI.wide[, -1], byrow=TRUE)
-
-popANI.long <- pivot_longer(popANI.wide, names_to= "name2", values_to= "mean_popANI", -name1) %>% 
-  # WATERSHED AREA JOIN
-  left_join(., watershed.area.popANI, by= c("name1" = "ggkbase_id")) %>% 
-  left_join(., watershed.area.popANI, by= c("name2" = "ggkbase_id")) %>% 
-  rename(watershed_1= watershed_km2.x, watershed_2= watershed_km2.y)
-
-popANI.sum <- popANI.long %>% 
-  group_by(name1, watershed_1) %>% 
-  summarise(meanPOPani= mean(mean_popANI, na.rm=TRUE)) %>% 
-  ungroup()
-popANI.sum
-
-#### STATISTICS ####
-fit.popANI1 <- lm(meanPOPani ~ log10(watershed_1), data= popANI.sum)
-summary(fit.popANI1)
-plot(fit.popANI1)
-hist(log(popANI.sum$meanPOPani))
-
-#### FIGURE #####
-popANI_watershed <- ggplot(data= popANI.sum, aes(x= watershed_1, y= meanPOPani*100)) +
-  geom_point(shape= 21, fill= species.colors[1], color= "black", size= 3) +
-  labs(x= expression("Watershed area (km"^2*")"), y= "Mean population ANI (%)") +
-  scale_x_log10(limits=c(1, 2200),
-                expand= c(0, 0)) +
-  annotation_logticks() +
-  scale_y_continuous(breaks= seq(99.4, 99.8, by= 0.2),
-                     labels= c("99.4", "99.6", "99.8")) +
-  #labels= c(" 0.994", " 0.996", " 0.998")) +
-  theme_strains
-popANI_watershed
-###############################################################################
 
 
 

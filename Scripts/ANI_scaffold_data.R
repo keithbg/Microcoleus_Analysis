@@ -122,3 +122,4 @@ ani_sum <- comp_sp1.F %>%
   mutate(watershed_diff= abs(watershed_2 - watershed_1)) %>% 
   select(-contains(".x"), -contains(".y"))
 
+write_tsv(ani_sum, "/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/Data/inStrain_data/ani_summary.tsv")

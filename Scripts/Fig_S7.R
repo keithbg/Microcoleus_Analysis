@@ -11,9 +11,9 @@
 library(tidyverse)
 library(ggplot2)
 library(cowplot)
-source("Scripts_manuscript/ggplot_themes.R")
+source("Scripts/ggplot_themes.R")
 
-setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis")
+#setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis")
 
 ## SNV data (input table generated in: format_inStrain_output.R)
 snv_df <- read_tsv("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains/inStrain/output_tables/snp_mutation_type_df.tsv")
@@ -49,14 +49,14 @@ NS_genome_ratios <- snv_df %>%
     NS= N_count/S_count) 
 
 snvs_genome_df <- left_join(snvs_mbp_df, NS_genome_ratios, by= c("sample", "species")) %>% 
-  mutate(pop_age= ifelse(SNV_mbp < 1550, "Young", "Old"),
-         pop_age_binary= ifelse(SNV_mbp < 1550, 1, 0),
-         ggkbase_id= str_replace(sample, "\\.species.*$", ""))
-  #left_join(., latlong, by= "ggkbase_id") %>% 
-  #left_join(., watershed.area, by= "ggkbase_id") %>% 
- # rename(species= species.x)
+  mutate(ggkbase_id= str_replace(sample, "\\.species.*$", ""))
+
 
 ## CALCULATE MINOR ALLELE FREQUENCIES FOR SPECIES 1
+## Samples with secondary SNV peaks
+secondary.snv.peaks <- c("2015_03D", "2015_03U", "2015_04D", "2015_04U", "2015_10S", "2017_02_FOX", 
+                         "2017_03_ELD", "2017_04_SCI", "2017_05_CCC", "2017_06_SFM", "2017_07_MST")
+
 snv.freq.sp1 <- snv_df %>% 
   filter(species == "species_1") %>% 
   #filter(., site == "PH2015_03U") %>% 
@@ -65,17 +65,27 @@ snv.freq.sp1 <- snv_df %>%
   group_by(site, varFreq_r2) %>% 
   summarize(n= length(varFreq)) %>% 
   ungroup() %>% 
-  left_join(., select(snvs_genome_df, ggkbase_id, pop_age, NS, SNV_mbp), by= c("site" = "ggkbase_id")) %>% 
-  mutate(facet_label= str_sub(site, start= 3, end= 13))
+  left_join(., select(snvs_genome_df, ggkbase_id, NS, SNV_mbp), by= c("site" = "ggkbase_id")) %>% 
+  mutate(facet_label= str_sub(site, start= 3, end= 13)) 
 
-## Samples with secondary SNV peaks
-secondary.snv.peaks <- c("2015_03D", "2015_03U", "2015_04D", "2015_04U", "2015_10S", "2017_02_FOX", 
-                         "2017_03_ELD", "2017_04_SCI", "2017_05_CCC", "2017_06_SFM", "2017_07_MST")
+snv.freq.NS <- snv.freq.sp1 %>% 
+  select(site, NS, SNV_mbp, facet_label, sec.peak) %>% 
+  distinct() %>% 
+  mutate(sec.peak= ifelse(facet_label %in% secondary.snv.peaks, "Y", "N"))
 
+
+#### STATISTICS ####
+summary(filter(snv.freq.NS, sec.peak == "Y")$NS)
+summary(filter(snv.freq.NS, sec.peak == "N")$NS)
+
+summary(lm(NS ~ sec.peak, data= snv.freq.NS))
 
 
 #### FIGURES ####
-
+ggplot(snv.freq.NS, aes(x= sec.peak, y= NS)) +
+  geom_boxplot() +
+  geom_point(position= "jitter") +
+  theme_strains
 
 
 secondary.peaks <- ggplot(filter(snv.freq.sp1, facet_label %in% secondary.snv.peaks),  aes(x= varFreq_r2, y= n)) +
@@ -126,9 +136,8 @@ snv.freq.fig.anno <- annotate_figure(snv.freq.fig,
                                      left= text_grob("Number of SNV sites", rot= 90, vjust= 2),
                                      bottom= text_grob("Minor allele frequency", vjust= -1))
 snv.freq.fig.anno
-#ggsave(snv.freq.fig, filename = "snv_freq_sp1.pdf", height= 180, width= 180, units= "mm", device= cairo_pdf,
-#      path= "Output_figures")
-ggsave(snv.freq.fig.anno, filename = "Fig_S8.png", height= 180, width= 180, units= "mm", dpi= 320,
+
+ggsave(snv.freq.fig.anno, filename = "Fig_S7.png", height= 180, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 
 
