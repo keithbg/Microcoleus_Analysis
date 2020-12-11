@@ -4,8 +4,8 @@ setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_A
 library(tidyverse)
 library(ggplot2)
 library(cowplot)
-source("Scripts_manuscript/ANI_scaffold_data.R")
-source("Scripts_manuscript/ggplot_themes.R")
+source("Scripts/ANI_scaffold_data.R")
+source("Scripts/ggplot_themes.R")
 
 
 #### STATISTICS ####
