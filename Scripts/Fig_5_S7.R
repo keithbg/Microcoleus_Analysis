@@ -11,6 +11,7 @@
 library(tidyverse)
 library(ggplot2)
 library(cowplot)
+library(ggsci)
 source("Scripts/ggplot_themes.R")
 
 #setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis")
@@ -66,12 +67,13 @@ snv.freq.sp1 <- snv_df %>%
   summarize(n= length(varFreq)) %>% 
   ungroup() %>% 
   left_join(., select(snvs_genome_df, ggkbase_id, NS, SNV_mbp), by= c("site" = "ggkbase_id")) %>% 
-  mutate(facet_label= str_sub(site, start= 3, end= 13)) 
+  mutate(facet_label= str_sub(site, start= 3, end= 13)) %>% 
+  mutate(sec.peak= ifelse(facet_label %in% secondary.snv.peaks, "Y", "N"))
 
 snv.freq.NS <- snv.freq.sp1 %>% 
   select(site, NS, SNV_mbp, facet_label, sec.peak) %>% 
-  distinct() %>% 
-  mutate(sec.peak= ifelse(facet_label %in% secondary.snv.peaks, "Y", "N"))
+  distinct() 
+  
 
 
 #### STATISTICS ####
@@ -87,6 +89,23 @@ ggplot(snv.freq.NS, aes(x= sec.peak, y= NS)) +
   geom_point(position= "jitter") +
   theme_strains
 
+
+sec.peaks.combined <- ggplot(filter(snv.freq.sp1, facet_label != "2015_01D" & sec.peak == "Y"), aes(x= varFreq_r2, y= n, group= facet_label)) +
+  #geom_point(color= species.colors[1], size= 1, alpha= 0.7) +
+  geom_smooth(aes(color= facet_label), method= "gam", se= FALSE, size= 0.75) +
+  labs(x= "Minor allele frequency", y= "Number of SNV sites") +
+  scale_x_continuous(limits= c(0.04, 0.5), 
+                     breaks= seq(0.05, 0.5, by= 0.05),
+                     labels= c("", "0.1", "", "0.2", "", "0.3", "", "0.4", "", "0.5"),
+                     expand= c(0,0)) +
+ # scale_color_manual(values= viridis::magma(11), guide= FALSE) +
+  scale_color_manual(values= c("purple", pal_npg("nrc")(10)), guide= FALSE) +
+  #lemon::facet_rep_wrap(~sec.peak, ncol= 1, scales= "free_y") +
+  theme_strains
+ggsave(sec.peaks.combined, filename = "Fig_5b.png", height= 180*0.66, width= 180, units= "mm", dpi= 320,
+       path= "Output_figures")
+  
+  
 
 secondary.peaks <- ggplot(filter(snv.freq.sp1, facet_label %in% secondary.snv.peaks),  aes(x= varFreq_r2, y= n)) +
   geom_point(color= species.colors[1], size= 1, alpha= 0.7) +
