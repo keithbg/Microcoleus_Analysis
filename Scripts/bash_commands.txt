@@ -1,0 +1,39 @@
+#### ASSEMBLY AND GENE PREDICTIONS ####
+# https://ggkbase-help.berkeley.edu/overview/data-preparation-metagenome/
+
+
+#### inSTRAIN ANALYSIS ####
+
+## Read mapping to reference genomes
+# Concatenate genomes together for mapping
+# ANI Species 1: dRep cluster 1_17: PH2015_12U_Oscillatoriales_45_315.fa    
+# ANI Species 2: dRep cluster 2_2: PH2015_13D_Oscillatoriales_45_19.fa
+# ANI Species 3: dRep cluster 1_1: PH2017_22_RUC_O_B_Oscillatoriales_46_93.fa
+# ANI Species 4: dRep cluster 2_1: PH2015_01U_Oscillatoriales_44_212.fa
+# Also choose some non-cyano genomes to include in the bowtie 2 index
+# PH2015_04U_Betaproteobacteria_57_31.fa, PH2015_06S_Bacteroidetes_32_163.fa, PH2015_08D_Verrucomicrobia_62_147.fa, PH2015_10S_Nostocales_36_12.fa, PH2015_12D_Cytophagales_54_44.fa, PH2015_14S_Oscillatoriales_56_116.fa, PH2015_14S_Sphingomonadales_65_9.fa,
+
+cat *.fa > mapping_genomes/linkage_mapping_contigs.fa
+bowtie2/v2.3.5.1/bowtie2-build linkage_mapping_contigs.fa linkage_mapping_contigs
+bowtie2/v2.3.5.1/bowtie2 -p 16 -x bt2/linkage_mapping_contigs.fa.fa -1 "$sample"_trim_clean.PE.1.fastq.gz -2 "$sample"_trim_clean.PE.2.fastq.gz 2> linkage_mapping_contigs.fa-vs-"$sample".log
+
+## Run inStrain
+# https://github.com/MrOlm/strains_analysis
+# Documentation: https://instrain.readthedocs.io/en/latest/overview.html
+
+# Compare each samples to the different reference genomes
+# Species 1
+inStrain profile "$BAM" PH2015_12U_Oscillatoriales_45_315.fa -p 16 -o "$sample_name".species_1.pid96 -c 5 --min_snp 20 -f 0.05 -l 0.96 --min_mapq 2 -g PH2015_12U_Oscillatoriales_45_315.fa.fna -s PH2015_12U_Oscillatoriales_45_315.scaf2bin.txt
+
+#### ROARY ####
+# https://github.com/sanger-pathogens/Roary
+
+## Generate GFF files with Prokka
+for file in $(ls -1 *.fa)
+  do
+  genome=$(echo "$file" | sed "s/^.*\///" | sed "s/.fa//")
+  prokka --locustag "$genome" --outdir annotated_"$genome" --prefix "$genome" "$file"
+done
+
+## Run Roary (90% blastp identity)
+roary -p 8 -i 90 -cd 90 -v -r -e -n -z -f Output_PHall_bp90_c90 ./annotated_GFF/*.gff

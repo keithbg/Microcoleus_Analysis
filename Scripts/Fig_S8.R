@@ -9,13 +9,6 @@ library(ggExtra)
 source("Scripts/ggplot_themes.R")
 
 
-#### FILE PATHS 
-dir_roary <- "../Roary/Output_PHall_bp90_c90"
-dir_core_genes <- "../Roary/Output_PHall_bp90_c90/core_genome_sequences"
-dir_out_table <- "Output_tables"
-dir_out_figs <- "Output_figures"
-
-
 #### READ DATA
 pg.btw.filt <- read_tsv(file.path("Data/PopGenome_data", "PopGenome_btw_filt.tsv"))
 
