@@ -1,54 +1,56 @@
+## Format and combine data from inStrain, dRep, and spatial relationships
 
-setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains")
+
+#setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains")
 
 
 ## INPUT FILES
-## River network distance data
-source("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/Scripts_cyano_metagenomics_2017/ANI_distance_format.R")
-rm(ani.dist)
-ani.riv.dist <- ani.dist1 %>% 
-  filter(primary_cluster == 1) %>% 
-  select(-ani, -year.querry, -year.reference, -primary_cluster, -reference, -querry) %>% 
-  rename(name1= sample.reference, name2= sample.querry)
-rm(ani.dist1)
+## River network distance data OK
+# River network distance calculate on ArcGIS and CSV exported
+# source("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/Scripts_cyano_metagenomics_2017/ANI_distance_format.R")
+# rm(ani.dist)
+# ani.riv.dist <- ani.dist1 %>% 
+#   filter(primary_cluster == 1) %>% 
+#   select(-ani, -year.querry, -year.reference, -primary_cluster, -reference, -querry) %>% 
+#   rename(name1= sample.reference, name2= sample.querry)
+# rm(ani.dist1)
 
-## Watershed area data
-dir_input_watershed <- "/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/EnvData"
-watershed.area <- read_tsv(file.path(dir_input_watershed, "PhormMeta17_WatershedArea_Combined.tsv")) %>% 
-  # rename(site= ggkbase_id) %>% 
+euclidean.distance <- read_tsv(file.path("Data/Spatial_data", "Distance_Euclidean_meters.tsv")) %>% 
+  rename(sample.querry = sample.1, sample.reference = sample.2)
+
+river.distance <- read_tsv(file.path("Data/Spatial_data", "Distance_RiverNetwork_meters.tsv")) %>% 
+  gather(key= sample.querry, value= riv_dist, -Site) %>% 
+  rename(sample.reference= Site)
+
+ani.riv.dist <- left_join(river.distance, euclidean.distance) %>% 
+  rename(name1= sample.reference, name2= sample.querry)
+rm(euclidean.distance, river.distance)
+
+
+## Watershed area data OK
+watershed.area <- read_tsv(file.path("Data/Spatial_data", "WatershedArea_Combined.tsv")) %>% 
   select(ggkbase_id, watershed_km2)
 
-## Nucleotide diversity
-nuc_div <- read_tsv("Output_tables/nuc_div_summary.txt") %>% 
+
+## Nucleotide diversity OK
+nuc_div <- read_tsv(file.path("Data/inStrain_data/", "nuc_div_summary.txt")) %>% 
   filter(species == "species_1") %>% 
   select(site, mean_pi, median_pi)
 
-## dRep results
-dir_input_dRep <- file.path("/Users","kbg","Documents","UC_Berkeley","CyanoMeta_NSF","Metagenomics", "Microcoleus_Analysis","GenomesData", "dRep","Output_tables")
-sp1.clusters <- read_tsv(file.path(dir_input_dRep, "sp1_clusters.tsv"))
-sp1.ani <- read_tsv(file.path(dir_input_dRep, "sp1_ani.tsv")) %>% 
-  rename(ani_dRep= ani) %>% 
-  mutate(name1= str_replace(row_name, "_s25.*$|_Oscill.*$", ""),
-         name2= str_replace(col_name, "_s25.*$|_Oscill.*$", "")) %>% 
-  mutate(ani99_dRep= ifelse(ani_dRep > 0.995, ">0.995", 
-                            ifelse(ani_dRep <= 0.995 & ani_dRep >=0.99, "0.99-0.995", "<0.99")))
-
-## Haplotype frequencies
-haplos <- read_tsv(file= "inStrain/output_tables/haplotype_freqs.tsv") %>% 
-  filter(species == "species_1")
-
-## SNV data and young/old populations
-snv_genomes <- read_tsv("Output_tables/snvs_genome_summary.tsv") %>% 
-  filter(species == "species_1") %>% 
-  select(ggkbase_id, SNV_mbp, pop_age)
-
-## Species 1 sites
-sp1_sites <- read_tsv("inStrain_sample_species_lookup.tsv") %>% 
+## Species 1 sites OK
+sp1_sites <- read_tsv(file.path("Data/inStrain_data/", "inStrain_sample_species_lookup.tsv")) %>% 
   mutate(species= str_c("species_", species_present)) %>% 
   rename(site= sample) %>% 
   select(-species_present) %>% 
   filter(., species == "species_1") %>% 
   select(-multiple_species)
+
+
+## SNV Genomes
+# in gene_NS.R script
+
+
+
 
 ## inStrain compare results
 comp_sp1 <- read_tsv("inStrain/instrainComparer_NoLoc_comparisonsTable_sp1.tsv") %>% 
@@ -98,7 +100,7 @@ ani_sum <- comp_sp1.F %>%
   left_join(., watershed.area, by= c("name2" = "ggkbase_id")) %>% 
   rename(watershed_1= watershed_km2.x, watershed_2= watershed_km2.y) %>% 
   # DREP ANI JOIN
-  left_join(., sp1.ani) %>% 
+  #left_join(., sp1.ani) %>% 
   # SNV_MBP JOIN
   left_join(., snv_genomes, by= c("name1" = "ggkbase_id")) %>% 
   left_join(., snv_genomes, by= c("name2" = "ggkbase_id")) %>% 
@@ -122,4 +124,25 @@ ani_sum <- comp_sp1.F %>%
   mutate(watershed_diff= abs(watershed_2 - watershed_1)) %>% 
   select(-contains(".x"), -contains(".y"))
 
-write_tsv(ani_sum, "/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/Data/inStrain_data/ani_summary.tsv")
+#write_tsv(ani_sum, "/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/Data/inStrain_data/ani_summary.tsv")
+
+
+## dRep results REMOVEE FROM ANALYSES
+# dir_input_dRep <- file.path("/Users","kbg","Documents","UC_Berkeley","CyanoMeta_NSF","Metagenomics", "Microcoleus_Analysis","GenomesData", "dRep","Output_tables")
+# sp1.ani <- read_tsv(file.path(dir_input_dRep, "sp1_ani.tsv")) %>% 
+#   rename(ani_dRep= ani) %>% 
+#   mutate(name1= str_replace(row_name, "_s25.*$|_Oscill.*$", ""),
+#          name2= str_replace(col_name, "_s25.*$|_Oscill.*$", "")) %>% 
+#   mutate(ani99_dRep= ifelse(ani_dRep > 0.995, ">0.995", 
+#                             ifelse(ani_dRep <= 0.995 & ani_dRep >=0.99, "0.99-0.995", "<0.99")))
+
+## Haplotype frequencies REMOVE FROM ANALYSES
+# haplos <- read_tsv(file= "inStrain/output_tables/haplotype_freqs.tsv") %>% 
+#   filter(species == "species_1")
+
+## SNV data and young/old populations REMOVE FROM ANALYSES
+# snv_genomes <- read_tsv("Output_tables/snvs_genome_summary.tsv") %>% 
+#   filter(species == "species_1") %>% 
+#   select(ggkbase_id, SNV_mbp, pop_age)
+
+

@@ -22,7 +22,7 @@ species_lookup <- read_tsv("Data/inStrain_data/inStrain_sample_species_lookup.ts
   rename(site= sample) %>% 
   select(-species_present)
 
-gg_anno <- read_tsv("inStrain/ggkbase_anno.tsv") # ggkbase annotations
+#gg_anno <- read_tsv("inStrain/ggkbase_anno.tsv") # ggkbase annotations
 
 
 
@@ -123,18 +123,87 @@ gi_filt_df <- map(cov_quantiles$sample, function(x) filter_coverage_breadth(gene
 write_tsv(gi_filt_df, path= "Data/inStrain_data/gene_info_filt_df_TEST.tsv")
 
 
+#### SUMMARIZE PI VALUES ACROSS THE GENOME ####
+gi_filt_summary <- gi_filt_df %>% 
+  group_by(sample, site, species) %>% 
+  summarize(n= length(nucl_diversity),
+            mean_pi= mean(nucl_diversity, na.rm= TRUE),
+            median_pi= median(nucl_diversity, na.rm= TRUE),
+            sd_pi= sd(nucl_diversity, na.rm= TRUE),
+            min_pi= min(nucl_diversity, na.rm= TRUE),
+            max_pi= max(nucl_diversity, na.rm= TRUE),
+            median_cov= median(coverage, na.rm= TRUE)) %>% 
+  ungroup() #%>% 
+  #left_join(., watershed.area, by= "site") # COMBINE WITH WATERSHED AREA
+
+write_tsv(gi_filt_summary, "Data/inStrain_data/nuc_div_summary_TEST.txt")
+
+
+
+
 #### SNP_MUTATION_TYPE.TSV FILE ##################################################################################
 
 ## Input files
-snv_files <- list.files(in_dir, pattern= ".pid96_SNP")
+snv_files <- list.files(in_dir, pattern= ".pid96_SNVs")
 snv_list <- map(snv_files, function(x) suppressMessages(read_tsv(file.path(in_dir, x))) %>% 
-                  mutate(sample= str_replace(x, "_SNP_mutation_types.tsv", "")) %>% 
+                  mutate(sample= str_replace(x, "_SNVs.tsv", "")) %>% 
                   mutate(site= str_split(sample, "\\.")[[1]][1],
                          species= str_split(sample, "\\.")[[1]][2])) %>% 
   setNames(str_replace(snv_files, ".tsv", ""))
 
 # Filter to only include species recovered from each site
+### The SNP_mutation_types.tsv file filters SNVs from the SNVs.tsv file by morphia == 2 and cryptic == FALSE. 
+## This is why there are fewer SNVs in the SNP_mutation_types.tsv file compared to the SNVs.tsv file
+
 snv_df <- bind_rows(snv_list) %>% left_join(species_lookup, ., by= c("site", "species"))  
+snv_df_filt <- snv_df %>% 
+  filter(allele_count <= 2 & cryptic == FALSE)
 
 # Write files
-write_tsv(snv_df, path= "inStrain/output_tables/snp_mutation_type_df.tsv")
+#write_tsv(snv_df_filt, path= "Data/inStrain_data/snv_df.tsv")
+
+
+# Get genome sizes
+# genome_lengths.txt generated from bash command
+genome.size <- read_delim("Data/inStrain_data/genome_lengths.txt", delim= " ", col_names= FALSE) %>% 
+  slice(c(13:16, 21:22))
+
+genome_size_df <- tibble(species= c("species_1", "species_2", "species_3"),
+                         genome_mbp= c(as.numeric(genome.size[2, ]) / 1000000, 
+                                       as.numeric(genome.size[4, ]) / 1000000, 
+                                       as.numeric(genome.size[6, ]) / 1000000))
+
+#### CALCULATE SNVs per MBP ####
+snvs_mbp_df <- snv_df_filt %>% 
+  left_join(., genome_size_df) %>% 
+  group_by(sample, species, genome_mbp) %>% 
+  summarize(SNVs= length(mutation_type),
+            cov_mean= mean(position_coverage, na.rm= TRUE),
+            cov_sd= sd(position_coverage, na.rm= TRUE)) %>%
+  ungroup() %>% 
+  mutate(SNV_mbp= SNVs / genome_mbp)
+
+
+
+#### CALCULATE N:S RATIOS ####
+# for both genome and individual genes
+NS_genome_ratios <- snv_df_filt %>% 
+  group_by(sample, species) %>% 
+  summarize(
+    SNV_count= length(mutation_type),
+    N_count= sum(str_detect(mutation_type, "N"), na.rm = TRUE),
+    S_count= sum(str_detect(mutation_type, "S"), na.rm = TRUE),
+    I_count= sum(str_detect(mutation_type, "I"), na.rm = TRUE),
+    M_count= sum(str_detect(mutation_type, "M"), na.rm = TRUE),
+    NS= N_count/S_count) 
+
+
+## JOIN THE SNVS PER MBP AND NS RATIO  DATA
+snvs_genome_df <- left_join(snvs_mbp_df, NS_genome_ratios, by= c("sample", "species")) %>% 
+  mutate(ggkbase_id= str_replace(sample, "\\.species.*$", ""))# %>% 
+  
+write_tsv(snvs_genome_df, "Data/inStrain_data/snvs_genome_summary.tsv")
+
+
+
+
