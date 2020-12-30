@@ -115,14 +115,12 @@ popANI_watershed
 
 
 #### SNV SHARING X WATERSHED AREA #############################################
-#source("Scripts/SNVS_analysis.R")
-
 #### FORMAT DATA ####
-## Input Jaccard index of SNV sharing sites
-snv_dist_list <- list(m1= read_tsv("Data/inStrain_data/snv_pos_M1_jaccard.tsv") %>% 
-                        mutate(morphia= "m1"),
-                      m2= read_tsv("Data/inStrain_data/snv_pos_M2_jaccard.tsv") %>% 
-                        mutate(morphia= "m2"))
+## Input Jaccard index of SNV sharing sites (generated in Scripts/inStrain_SNV_analysis.R)
+snv_dist_list <- list(AC1= read_tsv("Data/inStrain_data/snv_pos_AC1_jaccard.tsv") %>% 
+                        mutate(allele_count= "AC1"),
+                      AC2= read_tsv("Data/inStrain_data/snv_pos_AC2_jaccard.tsv") %>% 
+                        mutate(allele_count= "AC2"))
 
 
 ## River network distance between sites in meters
@@ -160,23 +158,23 @@ snv_dist_df <- bind_rows(snv_dist_list_mutate) %>%
   filter(siteA != siteB)
 
 #### STATISTICS ####
-fit.m1 <- lm(((1-snv_distance)) ~ riv_dist * log10(watershed_km2_A), filter(snv_dist_df, morphia == "m1", siteB != "PH2015_12D", siteA != "PH2015_12D", siteB != "PH2015_12U", siteA != "PH2015_12U"))
-summary(fit.m1)
-anova(fit.m1)
+fit.AC1 <- lm(((1-snv_distance)) ~ riv_dist * log10(watershed_km2_A), filter(snv_dist_df, allele_count == "AC1", siteB != "PH2015_12D", siteA != "PH2015_12D", siteB != "PH2015_12U", siteA != "PH2015_12U"))
+summary(fit.AC1)
+anova(fit.AC1)
 
-fit.m2 <- lm(((1-snv_distance)) ~ riv_dist * log10(watershed_km2_A), filter(snv_dist_df, morphia == "m2", siteB != "PH2015_12D", siteA != "PH2015_12D", siteB != "PH2015_12U", siteA != "PH2015_12U"))
-summary(fit.m2)
-anova(fit.m2)
+fit.AC2 <- lm(((1-snv_distance)) ~ riv_dist * log10(watershed_km2_A), filter(snv_dist_df, allele_count == "AC2", siteB != "PH2015_12D", siteA != "PH2015_12D", siteB != "PH2015_12U", siteA != "PH2015_12U"))
+summary(fit.AC2)
+anova(fit.AC2)
 
 #### FIGURE #####
-morphia.labels <- as_labeller(c(`all` = "Allele count = 1-4", `m234` = "Allele count = 2,3,4", `m34` = "Allele count = 3,4", `m12` = "Allele count = 1,2", `m1` = "Allele count = 1", `m2` = "Allele count = 2"))
+allele_count.labels <- as_labeller(c(`all` = "Allele count = 1-4", `m234` = "Allele count = 2,3,4", `m34` = "Allele count = 3,4", `m12` = "Allele count = 1,2", `AC1` = "Allele count = 1", `AC2` = "Allele count = 2"))
 cols <- c("snow1", brewer.pal(9, "BuGn")[5], species.colors[1])
 
-SNV_diss_watershed.m1 <- filter(snv_dist_df, morphia == "m1", siteB != "PH2015_12D", siteA != "PH2015_12D", siteB != "PH2015_12U", siteA != "PH2015_12U") %>% 
-  ggplot(., aes(x= watershed_km2_A, y= 1 - snv_distance, group= morphia)) +
+SNV_diss_watershed.AC1 <- filter(snv_dist_df, allele_count == "AC1", siteB != "PH2015_12D", siteA != "PH2015_12D", siteB != "PH2015_12U", siteA != "PH2015_12U") %>% 
+  ggplot(., aes(x= watershed_km2_A, y= 1 - snv_distance, group= allele_count)) +
   geom_point(aes(fill= riv_dist/1000), shape= 21, color= "black", size= 3) +
-  geom_abline(intercept = fit.m1$coefficients["(Intercept)"],
-              slope = fit.m1$coefficients["log10(watershed_km2_A)"],
+  geom_abline(intercept = fit.AC1$coefficients["(Intercept)"],
+              slope = fit.AC1$coefficients["log10(watershed_km2_A)"],
               color= "black", size= 1) +
   annotate("text", x= 1.05, y= 0.97, label= "Fixed SNV sites", hjust= 0, size= 4) +
   labs(x= expression('Watershed area (km'^"2"*")"), y= "SNV site similarity (%)") +
@@ -193,12 +191,12 @@ SNV_diss_watershed.m1 <- filter(snv_dist_df, morphia == "m1", siteB != "PH2015_1
   theme(legend.position = c(0, 0.9),
         legend.justification = c(0, 1),
         legend.direction= "horizontal")
-SNV_diss_watershed.m1
+SNV_diss_watershed.AC1
 
-SNV_diss_watershed.m2 <- ggplot(filter(snv_dist_df, morphia == "m2"), aes(x= watershed_km2_A, y= 1 - snv_distance, group= morphia)) +
+SNV_diss_watershed.AC2 <- ggplot(filter(snv_dist_df, allele_count == "AC2"), aes(x= watershed_km2_A, y= 1 - snv_distance, group= allele_count)) +
   geom_point(aes(fill= riv_dist/1000), shape= 21, color= "black", size= 3) +
-  geom_abline(intercept = fit.m2$coefficients["(Intercept)"],
-              slope = fit.m2$coefficients["log10(watershed_km2_A)"],
+  geom_abline(intercept = fit.AC2$coefficients["(Intercept)"],
+              slope = fit.AC2$coefficients["log10(watershed_km2_A)"],
               color= "black", size= 1) +
   annotate("text", x= 1.05, y= 0.97, label= "Bi-allelic SNV sites", hjust= 0, size= 4) +
   labs(x= expression('Watershed area (km'^"2"*")"), y= "SNV site similarity (%)") +
@@ -215,7 +213,7 @@ SNV_diss_watershed.m2 <- ggplot(filter(snv_dist_df, morphia == "m2"), aes(x= wat
   theme(legend.position = c(0, 0.9),
         legend.justification = c(0, 1),
         legend.direction= "horizontal")
-SNV_diss_watershed.m2
+SNV_diss_watershed.AC2
 ###############################################################################
 
 
@@ -229,10 +227,10 @@ watershedArea_combined <- plot_grid(nucDiv.watershed.plot + labs(y= "Nucleotide 
                                                                                                      axis.title.x = element_blank(),
                                                                                                      text= element_text(size= 10)),
                                     popANI_watershed + labs(y= "Mean pop. ANI (%)") + theme(axis.title.x = element_blank(), text= element_text(size= 10)),
-                                    SNV_diss_watershed.m2 + theme(#legend.position= "none",
+                                    SNV_diss_watershed.AC2 + theme(#legend.position= "none",
                                       axis.title.x = element_blank(),
                                       text= element_text(size= 10)),
-                                    SNV_diss_watershed.m1 + theme(legend.position= "none",
+                                    SNV_diss_watershed.AC1 + theme(legend.position= "none",
                                                                   axis.title.x = element_blank(),
                                                                   text= element_text(size= 10)),
                                     nrow= 4,
