@@ -1,19 +1,13 @@
-## Format and combine data from inStrain, dRep, and spatial relationships
+## Format and join data from inStrain, dRep, and spatial relationships
 
 
 #setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains")
 
 
-## INPUT FILES
+#### INPUT DATA ####
+
 ## River network distance data OK
 # River network distance calculate on ArcGIS and CSV exported
-# source("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/Scripts_cyano_metagenomics_2017/ANI_distance_format.R")
-# rm(ani.dist)
-# ani.riv.dist <- ani.dist1 %>% 
-#   filter(primary_cluster == 1) %>% 
-#   select(-ani, -year.querry, -year.reference, -primary_cluster, -reference, -querry) %>% 
-#   rename(name1= sample.reference, name2= sample.querry)
-# rm(ani.dist1)
 
 euclidean.distance <- read_tsv(file.path("Data/Spatial_data", "Distance_Euclidean_meters.tsv")) %>% 
   rename(sample.querry = sample.1, sample.reference = sample.2)
@@ -26,16 +20,9 @@ ani.riv.dist <- left_join(river.distance, euclidean.distance) %>%
   rename(name1= sample.reference, name2= sample.querry)
 rm(euclidean.distance, river.distance)
 
-
 ## Watershed area data OK
 watershed.area <- read_tsv(file.path("Data/Spatial_data", "WatershedArea_Combined.tsv")) %>% 
   select(ggkbase_id, watershed_km2)
-
-
-## Nucleotide diversity OK
-nuc_div <- read_tsv(file.path("Data/inStrain_data/", "nuc_div_summary.txt")) %>% 
-  filter(species == "species_1") %>% 
-  select(site, mean_pi, median_pi)
 
 ## Species 1 sites OK
 sp1_sites <- read_tsv(file.path("Data/inStrain_data/", "inStrain_sample_species_lookup.tsv")) %>% 
@@ -45,12 +32,13 @@ sp1_sites <- read_tsv(file.path("Data/inStrain_data/", "inStrain_sample_species_
   filter(., species == "species_1") %>% 
   select(-multiple_species)
 
+## Nucleotide diversity (generated in inStrain_format_output.R) OK
+nuc_div <- read_tsv(file.path("Data/inStrain_data/", "nuc_div_summary.txt")) %>% 
+  filter(species == "species_1") %>% 
+  select(site, mean_pi, median_pi)
 
-## SNV Genomes
-# in gene_NS.R script
-
-
-
+## SNV Genome summary data (generated in inStrain_format_output.R) OK
+snv_genomes <- read_tsv("Data/inStrain_data/snvs_genome_summary_TEST.tsv")
 
 ## inStrain compare results
 comp_sp1 <- read_tsv("inStrain/instrainComparer_NoLoc_comparisonsTable_sp1.tsv") %>% 
@@ -67,7 +55,7 @@ comp_sp1 <- read_tsv("inStrain/instrainComparer_NoLoc_comparisonsTable_sp1.tsv")
   filter(!is.na(name1))
 
 
-## Remove comparisons with percent_genome_compared < 0.25 
+## Remove inStrain comparisons with percent_genome_compared < 0.25 
 # this is 3.3% of all comparisons and includes many low ANI outliers
 # 183 scaffolds in the reference genomes: length(unique(comp_sp1$scaffold))
 
@@ -79,7 +67,7 @@ comp_sp1.F <- comp_sp1 %>%
   mutate(frac_popSNPs= population_SNPs / consensus_SNPs,
          frac_ANI= popANI  /conANI) # fraction of consensus_SNPs that are population_SNPs
 
-#### DATA ANALYSIS
+#### JOIN DATA ####
 
 ani_sum <- comp_sp1.F %>% 
   group_by(name1, name2) %>% 

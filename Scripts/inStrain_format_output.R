@@ -12,7 +12,6 @@
 
 ## Libraries
 library(tidyverse)
-#library(ggplot2)
 
 #### FILE PATHS ##########################################################################################
 in_dir <- "Data/inStrain_data/inStrain_output"
@@ -202,7 +201,7 @@ NS_genome_ratios <- snv_df_filt %>%
 snvs_genome_df <- left_join(snvs_mbp_df, NS_genome_ratios, by= c("sample", "species")) %>% 
   mutate(ggkbase_id= str_replace(sample, "\\.species.*$", ""))# %>% 
   
-write_tsv(snvs_genome_df, "Data/inStrain_data/snvs_genome_summary.tsv")
+write_tsv(snvs_genome_df, "Data/inStrain_data/snvs_genome_summary_TEST.tsv")
 
 
 

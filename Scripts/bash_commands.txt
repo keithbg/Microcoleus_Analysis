@@ -3,6 +3,8 @@
 
 
 #### inSTRAIN ANALYSIS ####
+# https://github.com/MrOlm/strains_analysis
+# Documentation: https://instrain.readthedocs.io/en/latest/overview.html
 
 ## Read mapping to reference genomes
 # Concatenate genomes together for mapping
@@ -17,17 +19,25 @@ cat *.fa > mapping_genomes/linkage_mapping_contigs.fa
 bowtie2/v2.3.5.1/bowtie2-build linkage_mapping_contigs.fa linkage_mapping_contigs
 bowtie2/v2.3.5.1/bowtie2 -p 16 -x bt2/linkage_mapping_contigs.fa.fa -1 "$sample"_trim_clean.PE.1.fastq.gz -2 "$sample"_trim_clean.PE.2.fastq.gz 2> linkage_mapping_contigs.fa-vs-"$sample".log
 
-## Run inStrain
-# https://github.com/MrOlm/strains_analysis
-# Documentation: https://instrain.readthedocs.io/en/latest/overview.html
+## Get genome lengths
+cd /mapping_genomes
+for genome in $(ls -1 PH*.fa)
+  do
+  echo "$genome" >> genome_lengths.txt
+  grep -v ">" "$genome" | wc | awk '{print $3-$1}' >> genome_lengths.txt
+done
 
-# Compare each samples to the different reference genomes
+## Run inStrain profile module for Species 1, 2, and 3
 # Species 1
 inStrain profile "$BAM" PH2015_12U_Oscillatoriales_45_315.fa -p 16 -o "$sample_name".species_1.pid96 -c 5 --min_snp 20 -f 0.05 -l 0.96 --min_mapq 2 -g PH2015_12U_Oscillatoriales_45_315.fa.fna -s PH2015_12U_Oscillatoriales_45_315.scaf2bin.txt -d
 # Species 2
 inStrain profile "$BAM" PH2015_13D_Oscillatoriales_45_19.fa -p 16 -o "$sample_name".species_2.pid96 -c 5 --min_snp 20 -f 0.05 -l 0.96 --min_mapq 2 -g PH2015_13D_Oscillatoriales_45_19.fa.fna -s PH2015_13D_Oscillatoriales_45_19.scaf2bin.txt -d
 # Species 3
 inStrain profile "$BAM" PH2017_22_RUC_O_B_Oscillatoriales_46_93.fa -p 16 -o "$sample_name".species_3.pid96 -c 5 --min_snp 20 -f 0.05 -l 0.96 --min_mapq 2 -g PH2017_22_RUC_O_B_Oscillatoriales_46_93.fa.fna -s PH2017_22_RUC_O_B_Oscillatoriales_46_93.scaf2bin.txt -d
+
+## Run inStrain compare module for Species 1
+inStrain compare -p 48 -i PH2015_01D.species_1.pid96 PH2015_01U.species_1.pid96 PH2015_02D.species_1.pid96 PH2015_02U.species_1.pid96 PH2015_03D.species_1.pid96 PH2015_03U.species_1.pid96 PH2015_04D.species_1.pid96 PH2015_04U.species_1.pid96 PH2015_05S.species_1.pid96 PH2015_06S.species_1.pid96 PH2015_07D.species_1.pid96 PH2015_07U.species_1.pid96 PH2015_08D.species_1.pid96 PH2015_08U.species_1.pid96 PH2015_09S.species_1.pid96 PH2015_10S.species_1.pid96 PH2015_11S.species_1.pid96 PH2015_12D.species_1.pid96 PH2015_12U.species_1.pid96 PH2015_13D.species_1.pid96 PH2015_13U.species_1.pid96 PH2015_14S.species_1.pid96 PH2017_01_SCD_O_A.species_1.pid96 PH2017_02_FOX_O_A.species_1.pid96 PH2017_03_ELD_O_A.species_1.pid96 PH2017_04_SCI_O_A.species_1.pid96 PH2017_05_CCC_O_A.species_1.pid96 PH2017_06_SFM_O_A.species_1.pid96 PH2017_07_MST_O_A.species_1.pid96 PH2017_08_TRC_O_A.species_1.pid96 PH2017_09_SFU_O_A.species_1.pid96 PH2017_10_PVI_O_A.species_1.pid96 PH2017_11_PCY_U_A.species_1.pid96 PH2017_12_PCY_D_A.species_1.pid96 PH2017_13_LAR_U_A.species_1.pid96 PH2017_14_LAR_D_A.species_1.pid96 PH2017_15_JOR_U_A.species_1.pid96 PH2017_16_JOR_D_A.species_1.pid96 PH2017_17_BER_D_A.species_1.pid96 PH2017_18_LLB_O_A.species_1.pid96 PH2017_19_SFW_U_A.species_1.pid96 PH2017_20_SFW_D_A.species_1.pid96 PH2017_21_RUC_O_A.species_1.pid96 PH2017_22_RUC_O_B.species_1.pid96 PH2017_24_DOB_U_A.species_1.pid96 PH2017_25_DOB_D_A.species_1.pid96 PH2017_26_ELK_O_A.species_1.pid96 PH2017_27_LUM_O_A.species_1.pid96 PH2017_28_MFU_U_A.species_1.pid96 PH2017_29_MFU_D_A.species_1.pid96 PH2017_30_WIL_O_A.species_1.pid96 PH2017_31_RDM_U_A.species_1.pid96 PH2017_32_RDM_D_A.species_1.pid96 PH2017_33_LGB_O_A.species_1.pid96 PH2017_34_RAT_O_A.species_1.pid96 PH2017_35_SFW_U_B.species_1.pid96 PH2017_36_ELK_O_B.species_1.pid96 PH2017_37_MFU_D_B.species_1.pid96 PH2017_38_RDM_U_B.species_1.pid96 PH2017_39_LGB_O_B.species_1.pid96 PH2017_40_RAT_O_B.species_1.pid96 -o compare_module_output
+
 
 #### ROARY ####
 # https://github.com/sanger-pathogens/Roary
