@@ -14,7 +14,7 @@ source("Scripts/ggplot_themes.R")
 
 
 #### INPUT FILES
-gi_filt_df <- read_tsv("Data/inStrain_data/gene_info_filt_df.tsv")
+gi_filt_df <- read_tsv("Data/inStrain_data/gene_info_filt_df_TEST.tsv")
 
 
 ## Watershed area data
@@ -57,7 +57,7 @@ gi_filt_df$species_facet <- factor(gi_filt_df$species,
 
 ## Nucleotide diversity density curves
 ggplot(data= gi_filt_df) +
-  geom_density(aes(x= pi, color= sample)) +
+  geom_density(aes(x= nucl_diversity, color= sample)) +
   labs(x= "Nucleotide diversity", y= "Density") +
   scale_x_log10(limits= c(0.00002, 0.52), # the minimum pi value (apart from 0) is 0.000026
                 breaks= c(0.0001, 0.001, 0.01, 0.1),
@@ -66,7 +66,7 @@ ggplot(data= gi_filt_df) +
   annotation_logticks(sides= "b") +
   scale_y_continuous(expand= c(0.01, 0)) +
   scale_color_discrete(guide= FALSE) +
-  facet_rep_grid(species_facet~., scales= "free_y", labeller= label_parsed) +
+  #facet_rep_grid(species_facet~., scales= "free_y", labeller= label_parsed) +
   theme_strains
 
 ggsave(last_plot(), filename = "Fig_S5.png", dpi= 320, height= 180*0.75, width= 180, units= "mm",

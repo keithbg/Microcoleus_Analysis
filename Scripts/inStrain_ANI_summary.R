@@ -76,7 +76,7 @@ ani_sum <- comp_sp1.F %>%
             sum_pop_sites= sum(population_SNPs),
             sum_con_sites= sum(consensus_SNPs),
             #frac_popSNVs= sum_pop_sites/sum_con_sites,
-            pMA= sum_pop_sites/sum_con_sites,
+            pMA= 1 - (sum_pop_sites/sum_con_sites),
             #mean_frac_popSNVs= mean(frac_popSNVs, na.rm=TRUE),
             sd_popANI= sd(popANI),
             sd_conANI= sd(conANI),
@@ -107,7 +107,7 @@ ani_sum <- comp_sp1.F %>%
          pi_avg_median = rowMeans(cbind(.$median_pi.1, .$median_pi.2))) %>% 
   select(-contains(".x"), -contains(".y"))
 
-write_tsv(ani_sum, "Data/inStrain_data/ani_summary_TEST.tsv")
+#write_tsv(ani_sum, "Data/inStrain_data/ani_summary_TEST.tsv")
 
 
 ## dRep results REMOVEE FROM ANALYSES

@@ -3,7 +3,7 @@
 library(tidyverse)
 source("Scripts/ggplot_themes.R")
 
-ani_sum <- read_tsv("Data/inStrain_data/ani_summary.tsv") # ani_summary.tsv generateed in "Scripts/ANI_scaffold_data.R"
+ani_sum <- read_tsv("Data/inStrain_data/ani_summary_TEST.tsv") # ani_summary.tsv generateed in "Scripts/ANI_scaffold_data.R"
 
 
 conANI_hist <- ggplot(ani_sum, aes(x= mean_conANI)) +

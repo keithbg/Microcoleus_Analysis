@@ -140,7 +140,7 @@ write_tsv(gi_filt_summary, "Data/inStrain_data/nuc_div_summary_TEST.txt")
 
 
 
-#### SNP_MUTATION_TYPE.TSV FILE ##################################################################################
+#### SNVs.TSV FILE ##################################################################################
 
 ## Input files
 snv_files <- list.files(in_dir, pattern= ".pid96_SNVs")
@@ -159,7 +159,7 @@ snv_df_filt <- snv_df %>%
   filter(allele_count <= 2 & cryptic == FALSE)
 
 # Write files
-#write_tsv(snv_df_filt, path= "Data/inStrain_data/snv_df.tsv")
+#write_tsv(snv_df_filt, path= "Data/inStrain_data/snv_df_filt_TEST.tsv")
 
 
 # Get genome sizes
@@ -172,7 +172,7 @@ genome_size_df <- tibble(species= c("species_1", "species_2", "species_3"),
                                        as.numeric(genome.size[4, ]) / 1000000, 
                                        as.numeric(genome.size[6, ]) / 1000000))
 
-#### CALCULATE SNVs per MBP ####
+#### SNVs/Mbp and N:S ####
 snvs_mbp_df <- snv_df_filt %>% 
   left_join(., genome_size_df) %>% 
   group_by(sample, species, genome_mbp) %>% 
@@ -184,7 +184,7 @@ snvs_mbp_df <- snv_df_filt %>%
 
 
 
-#### CALCULATE N:S RATIOS ####
+## CALCULATE N:S RATIOS
 # for both genome and individual genes
 NS_genome_ratios <- snv_df_filt %>% 
   group_by(sample, species) %>% 

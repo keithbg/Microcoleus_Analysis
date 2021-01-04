@@ -13,23 +13,23 @@ source("Scripts/ggplot_themes.R")
 #### FORMAT DATA ####
 
 ## Input df generated in format_inStrain_output.R
-gi_filt_df <- read_tsv("Data/inStrain_data/gene_info_filt_df.tsv")
+gi_filt_df <- read_tsv(file.path("Data/inStrain_data", "gene_info_filt_df_TEST.tsv"))
 
 ## Watershed area data
 watershed.area <-
-  read_tsv(file.path("Data", "WatershedArea_Combined.tsv")) %>% 
+  read_tsv(file.path("Data/Spatial_data", "WatershedArea_Combined.tsv")) %>% 
   select(ggkbase_id, watershed_km2) %>% 
   rename(site= ggkbase_id)
 
 ## Summarize pi values across genome 
 gi_filt_summary <- gi_filt_df %>% 
   group_by(sample, site, species) %>% 
-  summarize(n= length(pi),
-            mean_pi= mean(pi, na.rm= TRUE),
-            median_pi= median(pi, na.rm= TRUE),
-            sd_pi= sd(pi, na.rm= TRUE),
-            min_pi= min(pi, na.rm= TRUE),
-            max_pi= max(pi, na.rm= TRUE),
+  summarize(n= length(nucl_diversity),
+            mean_pi= mean(nucl_diversity, na.rm= TRUE),
+            median_pi= median(nucl_diversity, na.rm= TRUE),
+            sd_pi= sd(nucl_diversity, na.rm= TRUE),
+            min_pi= min(nucl_diversity, na.rm= TRUE),
+            max_pi= max(nucl_diversity, na.rm= TRUE),
             median_cov= median(coverage, na.rm= TRUE)) %>% 
   ungroup() %>% 
   left_join(., watershed.area, by= "site") # COMBINE WITH WATERSHED AREA
@@ -61,11 +61,11 @@ nucDiv.watershed.plot <- ggplot(data= gi_filt_summary, aes(x= watershed_km2, y= 
 ###############################################################################
 
 #### popANI X WATERSHED AREA ##################################################
-ani_sum <- read_tsv("Data/inStrain_data/ani_summary.tsv") # ani_sum generated in ANI_scaffold_data.R
+ani_sum <- read_tsv(file.path("Data/inStrain_data", "ani_summary_TEST.tsv")) # ani_sum generated in ANI_scaffold_data.R
 
 #### FORMAT DATA ####
 ## Watershed area data
-watershed.area.popANI <- read_tsv(file.path("Data", "Spatial_data", "WatershedArea_Combined.tsv")) %>%
+watershed.area.popANI <- read_tsv(file.path("Data/Spatial_data", "WatershedArea_Combined.tsv")) %>%
   select(ggkbase_id, watershed_km2)
 
 popANI.wide <- pivot_wider(select(ani_sum, name1, name2, mean_popANI), 
@@ -117,14 +117,14 @@ popANI_watershed
 #### SNV SHARING X WATERSHED AREA #############################################
 #### FORMAT DATA ####
 ## Input Jaccard index of SNV sharing sites (generated in Scripts/inStrain_SNV_analysis.R)
-snv_dist_list <- list(AC1= read_tsv("Data/inStrain_data/snv_pos_AC1_jaccard.tsv") %>% 
+snv_dist_list <- list(AC1= read_tsv(file.path("Data/inStrain_data", "snv_pos_AC1_jaccard.tsv")) %>% 
                         mutate(allele_count= "AC1"),
-                      AC2= read_tsv("Data/inStrain_data/snv_pos_AC2_jaccard.tsv") %>% 
+                      AC2= read_tsv(file.path("Data/inStrain_data", "snv_pos_AC2_jaccard.tsv")) %>% 
                         mutate(allele_count= "AC2"))
 
 
 ## River network distance between sites in meters
-river_dist_mat <- read_tsv("Data/Spatial_data/Distance_RiverNetwork_meters.tsv") %>% 
+river_dist_mat <- read_tsv(file.path("Data/Spatial_data", "Distance_RiverNetwork_meters.tsv")) %>% 
   rename(site= Site)
 
 # Make river distances long
@@ -133,7 +133,7 @@ river_dist_df <- river_dist_mat %>%
   gather(key= siteB, value= riv_dist, -siteA)
 
 # Watershed areas
-watershed_area <- read_tsv("Data/Spatial_data/WatershedArea_Combined.tsv") %>% 
+watershed_area <- read_tsv(file.path("Data/Spatial_data", "WatershedArea_Combined.tsv")) %>% 
   select(ggkbase_id, watershed_km2) %>% 
   mutate(siteA= ggkbase_id,
          watershed_km2_A= watershed_km2,

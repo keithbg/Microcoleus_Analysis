@@ -4,8 +4,10 @@ setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_A
 library(tidyverse)
 library(ggplot2)
 library(cowplot)
-source("Scripts/ANI_scaffold_data.R")
+#source("Scripts/ANI_scaffold_data.R")
 source("Scripts/ggplot_themes.R")
+
+ani_sum <- read_tsv("Data/inStrain_data/ani_summary_TEST.tsv") # .tsv file generated in: Scripts/inStrain_ANI_summary.R
 
 
 #### STATISTICS ####
@@ -14,7 +16,7 @@ fit.conANI <- lm((mean_conANI*100) ~ riv_dist, ani_sum)
 
 conANI_25km_fit1 <- lm(log(mean_conANI*100) ~ riv_dist + watershed_diff, data= filter(ani_sum, riv_dist < 25000))
 #summary(conANI_25km_fit1)
-conANI_25km_fit2 <- lm(mean_conANI*100 ~ riv_dist * watershed_diff, data= filter(ani_sum, riv_dist < 25000))
+conANI_25km_fit2 <- lm(log(mean_conANI*100) ~ riv_dist * watershed_diff, data= filter(ani_sum, riv_dist < 25000))
 #anova(conANI_25km_fit2)
 anova(conANI_25km_fit1, conANI_25km_fit2)
 
