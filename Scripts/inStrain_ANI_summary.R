@@ -62,9 +62,8 @@ comp_sp1 <- read_tsv("Data/inStrain_data/compare_module_output_sp1_comparisonsTa
 # on the genome wide averages, so I lowered cutoff to 0.25. 
 
 comp_sp1.F <- comp_sp1 %>% 
-  filter(percent_genome_compared > 0.25) %>% 
-  # Calculate pMA
-  mutate(pMA= 1 - (population_SNPs / consensus_SNPs)) # shared minor alleles: 1 - fraction of consensus_SNVs that are also population_SNVs
+  filter(percent_genome_compared > 0.25)
+#nrow(comp_sp1.F)/nrow(comp_sp1)
 
 #### JOIN DATA ####
 
@@ -76,7 +75,7 @@ ani_sum <- comp_sp1.F %>%
             sum_pop_sites= sum(population_SNPs),
             sum_con_sites= sum(consensus_SNPs),
             #frac_popSNVs= sum_pop_sites/sum_con_sites,
-            pMA= 1 - (sum_pop_sites/sum_con_sites),
+            pMA= 1 - (sum_pop_sites/sum_con_sites), # shared minor alleles: 1 - fraction of consensus_SNVs that are also population_SNVs
             #mean_frac_popSNVs= mean(frac_popSNVs, na.rm=TRUE),
             sd_popANI= sd(popANI),
             sd_conANI= sd(conANI),
@@ -107,7 +106,7 @@ ani_sum <- comp_sp1.F %>%
          pi_avg_median = rowMeans(cbind(.$median_pi.1, .$median_pi.2))) %>% 
   select(-contains(".x"), -contains(".y"))
 
-#write_tsv(ani_sum, "Data/inStrain_data/ani_summary_TEST.tsv")
+write_tsv(ani_sum, "Data/inStrain_data/ani_summary_TEST.tsv")
 
 
 ## dRep results REMOVEE FROM ANALYSES

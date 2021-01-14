@@ -1,56 +1,14 @@
-# Investigate nonsynonymous and synonymous SNV results from inStrain
-## The data are generated in the "gene_profile" command in inStrain
-## The files are SampleName.SNP_mutation_types.tsv
-
-### The SNP_mutation_types.tsv file filters SNVs from the SNVs.tsv file by morphia == 2 and cryptic == FALSE. 
-## This is why there are fewer SNVs in the SNP_mutation_types.tsv file compared to the SNVs.tsv file
-
-## Input df generated in format_inStrain_output.R
+# Minor allele frequencies in Species 1
 
 ## Libraries
 library(tidyverse)
-library(ggplot2)
-library(cowplot)
-library(ggsci)
 source("Scripts/ggplot_themes.R")
 
-#setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis")
 
 ## SNV data (input table generated in: format_inStrain_output.R)
-snv_df <- read_tsv("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains/inStrain/output_tables/snp_mutation_type_df.tsv")
-
-# Get genome sizes
-genome.size <- read_delim("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains/genome_lengths.txt", delim= " ", col_names= FALSE) %>% 
-  slice(c(13:16, 21:22))
-
-genome_size_df <- tibble(species= c("species_1", "species_2", "species_3"),
-                         genome_mbp= c(as.numeric(genome.size[2, ]) / 1000000, 
-                                       as.numeric(genome.size[4, ]) / 1000000, 
-                                       as.numeric(genome.size[6, ]) / 1000000))
-
-## CALCULATE SNVs per MBP
-snvs_mbp_df <- snv_df %>% 
-  left_join(., genome_size_df) %>% 
-  group_by(sample, species, genome_mbp) %>% 
-  summarize(SNVs= length(mutation_type),
-            cov_mean= mean(baseCoverage, na.rm= TRUE),
-            cov_sd= sd(baseCoverage, na.rm= TRUE)) %>%
-  ungroup() %>% 
-  mutate(SNV_mbp= SNVs / genome_mbp)
-
-## CALCULATE N:S RATIOS per genome
-NS_genome_ratios <- snv_df %>% 
-  group_by(sample, species) %>% 
-  summarize(
-    SNV_count= length(mutation_type),
-    N_count= sum(str_detect(mutation_type, "N")),
-    S_count= sum(str_detect(mutation_type, "S")),
-    I_count= sum(str_detect(mutation_type, "I")),
-    M_count= sum(str_detect(mutation_type, "M")),
-    NS= N_count/S_count) 
-
-snvs_genome_df <- left_join(snvs_mbp_df, NS_genome_ratios, by= c("sample", "species")) %>% 
-  mutate(ggkbase_id= str_replace(sample, "\\.species.*$", ""))
+#snv_df <- read_tsv("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains/inStrain/output_tables/snp_mutation_type_df.tsv")
+snv_df <- read_tsv(file.path("Data/inStrain_data", "snv_df_filt.tsv"))
+snvs_genome_df <- read_tsv(file.path("Data/inStrain_data", "snvs_genome_summary_TEST.tsv"))
 
 
 ## CALCULATE MINOR ALLELE FREQUENCIES FOR SPECIES 1
@@ -61,10 +19,10 @@ secondary.snv.peaks <- c("2015_03D", "2015_03U", "2015_04D", "2015_04U", "2015_1
 snv.freq.sp1 <- snv_df %>% 
   filter(species == "species_1") %>% 
   #filter(., site == "PH2015_03U") %>% 
-  mutate(varFreq_r3 = round(varFreq, 3),
-         varFreq_r2 = round(varFreq, 2)) %>% 
+  mutate(varFreq_r3 = round(var_freq, 3),
+         varFreq_r2 = round(var_freq, 2)) %>% 
   group_by(site, varFreq_r2) %>% 
-  summarize(n= length(varFreq)) %>% 
+  summarize(n= length(var_freq)) %>% 
   ungroup() %>% 
   left_join(., select(snvs_genome_df, ggkbase_id, NS, SNV_mbp), by= c("site" = "ggkbase_id")) %>% 
   mutate(facet_label= str_sub(site, start= 3, end= 13)) %>% 
