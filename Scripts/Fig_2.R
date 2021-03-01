@@ -1,4 +1,4 @@
-setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis")
+## Figure of popANI and conANI and river network distance
 
 
 library(tidyverse)
@@ -7,16 +7,18 @@ library(cowplot)
 #source("Scripts/ANI_scaffold_data.R")
 source("Scripts/ggplot_themes.R")
 
-ani_sum <- read_tsv("Data/inStrain_data/ani_summary_TEST.tsv") # .tsv file generated in: Scripts/inStrain_ANI_summary.R
+ani_sum <- read_tsv("Data/inStrain_data/ani_summary_v1.4.tsv") # .tsv file generated in: Scripts/inStrain_ANI_summary.R
 
 
 #### STATISTICS ####
 fit.popANI <- lm((mean_popANI*100) ~ riv_dist, ani_sum)
+#summary(fit.popANI)
 fit.conANI <- lm((mean_conANI*100) ~ riv_dist, ani_sum)
+#summary(fit.conANI)
 
-conANI_25km_fit1 <- lm(log(mean_conANI*100) ~ riv_dist + watershed_diff, data= filter(ani_sum, riv_dist < 25000))
+conANI_25km_fit1 <- lm((mean_conANI*100) ~ riv_dist + watershed_diff, data= filter(ani_sum, riv_dist < 25000))
 #summary(conANI_25km_fit1)
-conANI_25km_fit2 <- lm(log(mean_conANI*100) ~ riv_dist * watershed_diff, data= filter(ani_sum, riv_dist < 25000))
+conANI_25km_fit2 <- lm((mean_conANI*100) ~ riv_dist * watershed_diff, data= filter(ani_sum, riv_dist < 25000))
 #anova(conANI_25km_fit2)
 anova(conANI_25km_fit1, conANI_25km_fit2)
 
@@ -35,11 +37,12 @@ popANI_rivDist <- ggplot(data= ani_sum) +
                      expand= c(0, 5000)) +
   theme_strains +
   theme(legend.position = "top")
+#popANI_rivDist
 
 ## conANI
 conANI_rivDist <- ggplot(data= ani_sum, aes(x= riv_dist, y= mean_conANI*100)) +
-  geom_hline(yintercept = 99.35, linetype= "dashed", color= "gray60", size= 0.5) +
-  annotate("text", x= 350*1000, y= 99.4, label= "99.35%", hjust= 1, vjust= 0, color= "gray30", size= 3) +
+  #geom_hline(yintercept = 99.35, linetype= "dashed", color= "gray60", size= 0.5) +
+  #annotate("text", x= 350*1000, y= 99.4, label= "99.35%", hjust= 1, vjust= 0, color= "gray30", size= 3) +
   geom_point(size= 3, pch= 21, fill= species.colors[1], color= "black", alpha= 0.5) +
   geom_abline(intercept = fit.conANI$coefficients["(Intercept)"], slope= fit.conANI$coefficients["riv_dist"],
               color= "black", size= 1) +
@@ -56,8 +59,8 @@ conANI_rivDist <- ggplot(data= ani_sum, aes(x= riv_dist, y= mean_conANI*100)) +
 
 ## conANI < 25 km
 conANI_rivdist25km <- ggplot(data= filter(ani_sum, riv_dist < 25000), aes(x= riv_dist, y= mean_conANI*100)) +
-  geom_hline(yintercept = 99.35, linetype= "dashed", color= "gray60", size= 0.5) +
-  annotate("text", x= 25000, y= 99.4, label= "99.35%", hjust= 1, vjust= 0, color= "gray30",size= 3) +
+  #geom_hline(yintercept = 99.35, linetype= "dashed", color= "gray60", size= 0.5) +
+  #annotate("text", x= 25000, y= 99.4, label= "99.35%", hjust= 1, vjust= 0, color= "gray30",size= 3) +
   #geom_point(aes(fill= watershed_diff), size= 4, pch= 21, color= "black") +
   geom_point(aes(fill= watershed_diff, size= watershed_diff), shape= 21, color= "gray50") +
   geom_abline(intercept = conANI_25km_fit2$coefficients["(Intercept)"], slope= conANI_25km_fit2$coefficients["riv_dist"],
@@ -75,17 +78,17 @@ conANI_rivdist25km <- ggplot(data= filter(ani_sum, riv_dist < 25000), aes(x= riv
   theme(legend.position = c(0.7, 0.85),
         legend.direction = "horizontal",
         legend.background = element_rect(color= "transparent", fill= "transparent"))
-conANI_rivdist25km
+#conANI_rivdist25km
 
 
-ANI_rivdist_combined <- plot_grid(popANI_rivDist+ theme(axis.title.x = element_blank()), 
+ANI_rivdist_combined <- plot_grid(popANI_rivDist + theme(axis.title.x = element_blank()), 
                                   conANI_rivDist + theme(axis.title.x = element_blank()), 
                                   conANI_rivdist25km,
                                   nrow= 3,
                                   labels= c("A", "B", "C"))
 
 
-ggsave(ANI_rivdist_combined, filename = "Fig_2.png", height= 180, width= 180, units= "mm", dpi= 320,
+ggsave(ANI_rivdist_combined, filename = "Fig_2_v1.4.png", height= 180, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 
 

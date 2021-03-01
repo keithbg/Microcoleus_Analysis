@@ -35,11 +35,15 @@ theme_strains <- theme(panel.grid = element_blank(),
 
 PH2017_map_theme <- theme(plot.margin= margin(0.2, 0.2, 0.2, 0.2, unit= "cm"),
                           text= element_text(size= 10),
-                          panel.background = element_rect(fill= "#c7cee7"),
-                          panel.border = element_rect(color= "black", fill= NA),
+                          #panel.background = element_rect(fill= "#c7cee7"),
+                          #panel.border = element_rect(color= "black", fill= NA),
+                          plot.background = element_rect(fill = "transparent", color= "transparent"), # bg of the plot
+                          panel.background = element_rect(fill= "transparent", color= "transparent"),
+                          #panel.border= element_rect(fill= "transparent", color= "black", linetype= "solid", size= 0.5),
+                          panel.border= element_rect(fill= NA, color= NA, linetype= "solid", size= 1),
                           legend.key= element_rect(fill= "transparent"),
                           legend.background = element_rect(fill= "transparent"),
-                          plot.background = element_rect(fill= "transparent", color= NA),
+                          #plot.background = element_rect(fill= "transparent", color= NA),
                           panel.grid.minor = element_blank(),
                           panel.grid.major = element_blank()
 )
