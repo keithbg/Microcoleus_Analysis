@@ -19,7 +19,7 @@ extract_envID <- function(x){
 
 #### IMPORT DATA ####
 ## ANI data
-ani <- read_tsv("Data/inStrain_data/ani_summary.tsv") %>% # ani_summary.tsv generated in ANI_scaffold_data.R
+ani <- read_tsv("Data/inStrain_data/ani_summary_v1.4.tsv") %>% # ani_summary.tsv generated in ANI_scaffold_data.R
   mutate(envID1= do.call(rbind, map(name1, extract_envID))[, 1],
          envID2= do.call(rbind, map(name2, extract_envID))[, 1],
          compID= str_c(envID1, envID2, sep= "-"))
@@ -52,7 +52,7 @@ tenv <- env %>%
 
 ## Calculate differences between environmental values
 calc_diffs <- function(vec){
-  df <- as_tibble(outer(vec, vec, `-`))  
+  df <- as_tibble(outer(vec, vec, `-`), .name_repair= "minimal")  
   colnames(df) <- tenv$envID
   df$envID1 <- tenv$envID
   
@@ -101,8 +101,10 @@ env.conANI <- ggplot(filter(ani.env.plotting, metric != "alk",  metric != "DOC_u
   geom_point(aes(fill= year), pch= 21, color= "black", alpha= 0.3) +
   scale_fill_manual(values= year.fill.colors, name= "Year comparison") +
   scale_color_manual(values= year.colors, name= "Year comparison") +
-  scale_y_continuous(breaks= seq(0.9875, 1, by=0.0025), labels= c("", "0.990", "", "0.995", "", "1.000")) +
-  labs(x= "Pairwise parameter difference", y= "Consensus ANI") +  
+  #scale_y_continuous(breaks= seq(0.9875, 1, by=0.0025), labels= c("", "0.990", "", "0.995", "", "1.000")) +
+  scale_y_continuous(breaks= seq(0.99, 1, by=0.001), labels= c("99.0", "", "99.2", "", "99.4", "", "99.6", "", "99.8", "", "100")) +
+  scale_x_continuous(expand= c(0.04,0)) +
+  labs(x= "Pairwise parameter difference", y= "Consensus ANI (%)") +  
   geom_smooth(aes(color= year),size= 2, method= "lm", se= FALSE) +
   facet_wrap(~metric, nrow= 5, scales= "free_x", labeller= labeller(metric= env.labels)) +
   theme_strains +
@@ -115,8 +117,10 @@ env.popANI <- ggplot(filter(ani.env.plotting, metric != "alk",  metric != "DOC_u
   geom_point(aes(fill= year), pch= 21, color= "black", alpha= 0.3) +
   scale_fill_manual(values= year.fill.colors, name= "Year comparison") +
   scale_color_manual(values= year.colors, name= "Year comparison") +
-  labs(x= "Pairwise parameter difference", y= "Population ANI") +  
+  labs(x= "Pairwise parameter difference", y= "Population ANI (%)") +  
   geom_smooth(aes(color= year), size= 2, method= "lm", se= FALSE) +
+  scale_y_continuous(breaks= seq(0.993, 1, by=0.001), labels= c("", "99.4", "", "99.6", "", "99.8", "", "100")) +
+  scale_x_continuous(expand= c(0.04,0)) +
   facet_wrap(~metric, nrow= 5, scales= "free_x", labeller= labeller(metric= env.labels)) +
   theme_strains +
   theme(axis.text.x= element_text(angle= 45, vjust= 0.9, hjust= 0.9),
@@ -141,7 +145,7 @@ env.plot.combined2 <- plot_grid(year.legend, env.plot.combined,
                                 nrow=2,
                                 rel_heights= c(0.1, 1))
 
-ggsave(env.plot.combined2, filename = "Fig_S4.png", dpi= 320, height= 180*1.2, width= 180, units= "mm",
+ggsave(env.plot.combined2, filename = "Fig_S4_v1.4.png", dpi= 320, height= 180*1.2, width= 180, units= "mm",
        path= "Output_figures")
 
 
@@ -152,6 +156,7 @@ filter(ani.env, metric == "canopy_cover_percent") %>%
 
 fitCon.canopy <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "canopy_cover_percent"))
 summary(fitCon.canopy)
+plot(fitCon.canopy)
 anova(fitCon.canopy)
 
 
@@ -164,6 +169,14 @@ anova(fitCon.cond)
 plot(fitCon.cond)
 
 
+filter(ani.env, metric == "temp_NorWest") %>% 
+  plot(log(mean_conANI) ~ diff, data= .)
+
+fitCon.NorWest <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "temp_NorWest"))
+summary(fitCon.NorWest)
+anova(fitCon.NorWest)
+
+## TDN and TDP variables no longer significant under inStrain v1.4
 filter(ani.env, metric == "TDN_ugL") %>% 
   plot(log(mean_conANI) ~ diff, data= .)
 
@@ -178,10 +191,4 @@ fitCon.TDP <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "TDP_ugL"))
 summary(fitCon.TDP)
 anova(fitCon.TDP)
 
-filter(ani.env, metric == "temp_NorWest") %>% 
-  plot(log(mean_conANI) ~ diff, data= .)
-
-fitCon.NorWest <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "temp_NorWest"))
-summary(fitCon.NorWest)
-anova(fitCon.NorWest)
 

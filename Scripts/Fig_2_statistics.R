@@ -17,34 +17,42 @@ popANI.env.w <- ani.env %>%
   dplyr::select(-pH, -alk, -NH4_ugL, -mean_vX, -NO3_ugL, -DOC_ugL, -do_mgL, -temp)
 
 
+## Check that variables are not correlated
+cor(conANI.env.w[, -c(1, 2)]) 
 
-cor(conANI.env.w[, -c(1, 2)]) ## correlated variables removed
+## Check for year as random effect
+cAIC.con.env.dist <- cAIC4::stepcAIC(modAIC.con.env.dist, direction= "forward",
+                              groupCandidates = "year",
+                              trace= TRUE,
+                              data= conANI.env.w)
+## Variance of year as random factore ~0, so no need to add as random effect. 
+##Keep it as a fixed effect.
 
 
-?cor
-names(conANI.env.w)
 
+
+## Linear models with all variables
 lm.con.env <- lm(mean_conANI ~ ., data= dplyr::select(conANI.env.w, -riv_dist, -watershed_diff))
 lm.con.env.dist <-  lm(mean_conANI ~ ., data= conANI.env.w)
 anova(lm.con.env, lm.con.env.dist)
 
-step1 <- step(lm.con.env.dist)
-anova(step1)
-?step
 lm.pop.env <- lm(mean_popANI ~ ., data= dplyr::select(popANI.env.w, -riv_dist, -watershed_diff))
 lm.pop.env.dist <-  lm(mean_popANI ~ ., data= popANI.env.w)
 
-library(MASS)
-modAIC.con.env <- stepAIC(lm.con.env)
+## Select model based on AIC ##
+# conANI
+modAIC.con.env <- MASS::stepAIC(lm.con.env)
 summary(modAIC.con.env)
 modAIC.con.env$anova
 
-modAIC.con.env.dist <- stepAIC(lm.con.env.dist)
+modAIC.con.env.dist <- MASS::stepAIC(lm.con.env.dist)
 summary(modAIC.con.env.dist)
 modAIC.con.env.dist$anova
 
+## Test improvement of adding distance parameters to the statistical fit
 anova(modAIC.con.env, modAIC.con.env.dist)
 
+# popANI
 modAIC.pop.env <- stepAIC(lm.pop.env)
 summary(modAIC.pop.env)
 modAIC.pop.env$anova
@@ -56,50 +64,6 @@ plot(modAIC.pop.env.dist)
 
 anova(modAIC.pop.env, modAIC.pop.env.dist)
 
-
-
-
-cAIC.con.env.dist <- stepcAIC(modAIC.con.env.dist, direction= "forward",
-                              groupCandidates = "year",
-                              trace= TRUE,
-                              data= conANI.env.w)
-## Variance of year as random factore ~0, so no need to add as Random effect. Keep it as a fixed effect.
-
-
-
-
-
-modAIC.1$anova
-
-car::vif(lm.1)
-
-library(cAIC4)
-lm.0 <- lm(mean_conANI ~ cond_ms + canopy_cover_percent, data= conANI.env.w)
-lm.0 <- lm(mean_conANI ~ ., data= dplyr::select(conANI.env.w, -year))
-
-lmer.0 <- lmer(log(mean_conANI) ~ 1 + (1|year), data= conANI.env.w)
-
-lmer.1 <- lmer(mean_conANI ~ . + (1|year), data= conANI.env.w)
-
-modcAIC.1 <- stepcAIC(lmer.1, trace= TRUE, direction= "backward", data= conANI.env.w)
-modcAIC.1
-
-cAIC.f.1 <- stepcAIC(lm.0, direction= "forward",
-                     groupCandidates = "year",
-                     trace= TRUE,
-                     data= conANI.env.w,
-                     numberOfSavedModels = 2)
-summary(cAIC.f.1)
-cAIC.f.1$additionalModels
-
-str(cAIC.f.1)
-
-anocAIC(c(lmer.0, lmer.1))
-cAIC(lm.0)
-
-
-(fm3 <- lmer(strength ~ 1 + (1|sample), Pastes))
-fm3_step <- stepcAIC(fm3, direction = "backward", trace = TRUE, data = Pastes)
 
 
 
@@ -163,6 +127,34 @@ ggplot() +
 ggsave(last_plot(), file= "OldYoung_EnvData_PCA_1&2.png", height= 6, width= 6, units= "in", path= "Output_figures", dpi= 300)
 
 
+## Old models with year as random effect
+# library(cAIC4)
+# lm.0 <- lm(mean_conANI ~ cond_ms + canopy_cover_percent, data= conANI.env.w)
+# lm.0 <- lm(mean_conANI ~ ., data= dplyr::select(conANI.env.w, -year))
+# 
+# lmer.0 <- lmer(log(mean_conANI) ~ 1 + (1|year), data= conANI.env.w)
+# 
+# lmer.1 <- lmer(mean_conANI ~ . + (1|year), data= conANI.env.w)
+# 
+# modcAIC.1 <- stepcAIC(lmer.1, trace= TRUE, direction= "backward", data= conANI.env.w)
+# modcAIC.1
+# 
+# cAIC.f.1 <- stepcAIC(lm.0, direction= "forward",
+#                      groupCandidates = "year",
+#                      trace= TRUE,
+#                      data= conANI.env.w,
+#                      numberOfSavedModels = 2)
+# summary(cAIC.f.1)
+# cAIC.f.1$additionalModels
+# 
+# str(cAIC.f.1)
+# 
+# anocAIC(c(lmer.0, lmer.1))
+# cAIC(lm.0)
+# 
+# 
+# (fm3 <- lmer(strength ~ 1 + (1|sample), Pastes))
+# fm3_step <- stepcAIC(fm3, direction = "backward", trace = TRUE, data = Pastes)
 
 
 
