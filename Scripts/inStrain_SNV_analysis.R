@@ -16,6 +16,7 @@ snv_files <- list.files(in_dir, pattern= "species_1.pid96.SNVs.tsv")
 
 
 ## Read in all SNVs.tsv files
+# AC = allele count
 snv_list_AC1 <- map(snv_files, function(x) suppressMessages(read_tsv(file.path(in_dir, x))) %>% 
                            mutate(pos_id= str_c(scaffold, position, sep= "-")) %>% 
                            filter(allele_count == 1) %>% 

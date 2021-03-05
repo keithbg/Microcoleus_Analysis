@@ -36,11 +36,11 @@ species_lookup <- read_tsv("Data/inStrain_data/inStrain_sample_species_lookup.ts
 gi_files <- list.files(in_dir, pattern= "pid96_gene_info")
 
 
-test <- read_tsv(file.path(in_dir, gi_files[5])) %>% 
-  mutate(sample= str_replace(gi_files[5], "_gene_info.tsv", "")) %>% 
-  mutate(site= str_split(sample, "\\.")[[1]][1],
-         species= str_split(sample, "\\.")[[1]][2])
-
+# test <- read_tsv(file.path(in_dir, gi_files[5])) %>% 
+#   mutate(sample= str_replace(gi_files[5], "_gene_info.tsv", "")) %>% 
+#   mutate(site= str_split(sample, "\\.")[[1]][1],
+#          species= str_split(sample, "\\.")[[1]][2])
+# rm(test)
 
 ## FORMAT GENE INFO FILES
 make_gi_df <- function(dir_in, gi_file_names){
@@ -70,7 +70,7 @@ gi_df <- make_gi_df(dir_in = in_dir,
   left_join(species_lookup, ., by= c("site", "species"))  # Filter to only include species recovered from each site
 
 # Write files
-#write_tsv(gi_df, path= "inStrain/output_tables/gene_info_df.tsv")
+#write_tsv(gi_df, path= "inStrain/output_tables/gene_info_df_v1.4.tsv")
 
 
 
@@ -113,13 +113,13 @@ gi_filt_df <- map(cov_quantiles$sample, function(x) filter_coverage_breadth(gene
                                                                             quant_df = cov_quantiles, #lower 10% removed
                                                                             breadth_thresh= 0.9,
                                                                             samp_name = x)) %>% 
-  bind_rows(gi_filt)
+  bind_rows(.)
 ## COMBINE WITH GGKBASE ANNOTATIONS
 #gi_filt_df <- bind_rows(gi_filt) %>%  # transform list into a data frame
   #left_join(., select(gg_anno, c(gene, uniref_anno, uniprot_anno, kegg_anno)), by= "gene") # combine with ggkbase annotations
 
 # Write files
-write_tsv(gi_filt_df, path= "Data/inStrain_data/gene_info_filt_df_TEST.tsv")
+write_tsv(gi_filt_df, path= "Data/inStrain_data/gene_info_filt_df_v1.4.tsv")
 
 
 #### SUMMARIZE PI VALUES ACROSS THE GENOME ####
@@ -135,7 +135,7 @@ gi_filt_summary <- gi_filt_df %>%
   ungroup() #%>% 
   #left_join(., watershed.area, by= "site") # COMBINE WITH WATERSHED AREA
 
-write_tsv(gi_filt_summary, "Data/inStrain_data/nuc_div_summary_TEST.txt")
+write_tsv(gi_filt_summary, "Data/inStrain_data/nuc_div_summary_v1.4.txt")
 
 
 
@@ -159,7 +159,7 @@ snv_df_filt <- snv_df %>%
   filter(allele_count <= 2 & cryptic == FALSE)
 
 # Write files
-#write_tsv(snv_df_filt, path= "Data/inStrain_data/snv_df_filt_TEST.tsv")
+#write_tsv(snv_df_filt, path= "Data/inStrain_data/snv_df_filt_v1.4.tsv")
 
 
 # Get genome sizes
@@ -201,7 +201,7 @@ NS_genome_ratios <- snv_df_filt %>%
 snvs_genome_df <- left_join(snvs_mbp_df, NS_genome_ratios, by= c("sample", "species")) %>% 
   mutate(ggkbase_id= str_replace(sample, "\\.species.*$", ""))# %>% 
   
-write_tsv(snvs_genome_df, "Data/inStrain_data/snvs_genome_summary_TEST.tsv")
+write_tsv(snvs_genome_df, "Data/inStrain_data/snvs_genome_summary_v1.4.tsv")
 
 
 
