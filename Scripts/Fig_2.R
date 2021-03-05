@@ -19,7 +19,7 @@ fit.conANI <- lm((mean_conANI*100) ~ riv_dist, ani_sum)
 conANI_25km_fit1 <- lm((mean_conANI*100) ~ riv_dist + watershed_diff, data= filter(ani_sum, riv_dist < 25000))
 #summary(conANI_25km_fit1)
 conANI_25km_fit2 <- lm((mean_conANI*100) ~ riv_dist * watershed_diff, data= filter(ani_sum, riv_dist < 25000))
-#anova(conANI_25km_fit2)
+#summary(conANI_25km_fit2)
 anova(conANI_25km_fit1, conANI_25km_fit2)
 
 
@@ -35,6 +35,10 @@ popANI_rivDist <- ggplot(data= ani_sum) +
                      breaks= seq(0, 350000, by= 25000),
                      labels= c("0", "", "50", "", "100", "", "150", "", "200", "", "250", "", "300", "", "350"),
                      expand= c(0, 5000)) +
+  scale_y_continuous(limits= c(99.19, 100),
+                     breaks= seq(99.2, 100.0, by= 0.1),
+                     labels= c("99.2", "", "99.4", "", "99.6", "", "99.8", "", "100.0"),
+                     expand= c(0.035,0)) +
   theme_strains +
   theme(legend.position = "top")
 #popANI_rivDist
@@ -51,8 +55,10 @@ conANI_rivDist <- ggplot(data= ani_sum, aes(x= riv_dist, y= mean_conANI*100)) +
                      breaks= seq(0, 350000, by= 25000),
                      labels= c("0", "", "50", "", "100", "", "150", "", "200", "", "250", "", "300", "", "350"),
                      expand= c(0, 5000)) +
-  scale_y_continuous(breaks= seq(98.80, 100.00, by= 0.2),
-                     labels= c("98.8", "99.0", "99.2", "99.4", "99.6", "99.8", "100.0")) +
+  scale_y_continuous(limits= c(99.19, 100),
+                     breaks= seq(99.2, 100.0, by= 0.1),
+                     labels= c("99.2", "", "99.4", "", "99.6", "", "99.8", "", "100.0"),
+                     expand= c(0.035,0)) +
   theme_strains +
   theme(legend.position = "top")
 #conANI_rivDist
@@ -70,10 +76,13 @@ conANI_rivdist25km <- ggplot(data= filter(ani_sum, riv_dist < 25000), aes(x= riv
                        option= "plasma") +
   scale_size_continuous(range= c(2.5, 6), guide= FALSE) +
   scale_x_continuous(limits= c(0, 25001),
-                     breaks= seq(0, 25000, by= 5000),
+                     breaks= seq(0, 25000, by= 2500),
+                     labels= c("0", "", "5", "", "10", "", "15", "", "20", "", "25"),
                      expand= c(0.02, 0)) +
-  scale_y_continuous(breaks= seq(98.80, 100.00, by= 0.2),
-                     labels= c("98.8", "99.0", "99.2", "99.4", "99.6", "99.8", "100.0")) +
+  scale_y_continuous(limits= c(99.19, 100),
+                     breaks= seq(99.2, 100.00, by= 0.1),
+                     labels= c("99.2", "", "99.4", "", "99.6", "", "99.8", "", "100.0"),
+                     expand= c(0.035,0)) +
   theme_strains +
   theme(legend.position = c(0.7, 0.85),
         legend.direction = "horizontal",
