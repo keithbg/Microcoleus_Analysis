@@ -77,7 +77,9 @@ ani.env.plotting <- filter(ani.env, metric != "do_mgL" & metric != "mean_vX" & m
 
 
 #### FIGURES ####
-env.labels <- as_labeller(c(`alk` = "Alkalinity", `canopy_cover_percent` = "Canopy cover", `cond_ms` = "Conductivity", `DOC_ugL` = "DOC", `NH4_ugL` = "Ammonium", `NO3_ugL` = "Nitrate", `TDN_ugL` = "TDN", `TDP_ugL` = "TDP", `temp_NorWest` = "Mean temperature"))
+env.labels <- as_labeller(c(`alk` = "Alkalinity", `canopy_cover_percent` = "Canopy cover", `cond_ms` = "Conductivity", 
+                            `DOC_ugL` = "DOC", `NH4_ugL` = "Ammonium", `NO3_ugL` = "Nitrate", 
+                            `TDN_ugL` = "TDN", `TDP_ugL` = "TDP", `temp_NorWest` = "Mean temperature"))
 
 
 env.watershed <- ggplot(ani.env.plotting, aes(x= watershed_diff + 0.1, y= diff)) +
