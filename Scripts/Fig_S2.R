@@ -80,6 +80,7 @@ ani.species.comparison <- ani.df.l %>%
 ## Color ramp
 ani.breaks <- c(0.85, seq(0.90, 1, by= 0.005))
 legend.breaks <- c(0.85, seq(0.90, 1, by= 0.02))
+legend.labels <- as.character(legend.breaks*100)
 ani.colors <- c("gray70",  colorRampPalette(c("cornsilk", "snow", "goldenrod", "salmon", "tomato", "firebrick"))(21))
 
 
@@ -88,6 +89,7 @@ ani.heat <- pheatmap(ani.mat,
          breaks= ani.breaks,
          border_color = "gray60",
          legend_breaks= legend.breaks,
+         legend_labels = legend.labels,
          scale= "none",
          cluster_cols = TRUE,
          cluster_rows = TRUE,

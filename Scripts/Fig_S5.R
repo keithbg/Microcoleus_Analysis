@@ -2,8 +2,6 @@
 ## The data are generated in the "gene_profile" command in inStrain
 ## The files are SampleName.gene_profile.tsv
 
-## Input df generated in format_inStrain_output.R
-
 
 ## Libraries
 library(tidyverse)
@@ -14,15 +12,9 @@ source("Scripts/ggplot_themes.R")
 
 
 #### INPUT FILES
-gi_filt_df <- read_tsv("Data/inStrain_data/gene_info_filt_df_TEST.tsv")
+## Input df (gene_info_filt_df_v1.4.tsv) generated in format_inStrain_output.R
+gi_filt_df <- read_tsv("Data/inStrain_data/gene_info_filt_df_v1.4.tsv")
 
-
-## Watershed area data
-dir_input_watershed <- "/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/EnvData"
-watershed.area <-
-  read_tsv(file.path("Data/Spatial_data", "WatershedArea_Combined.tsv")) %>% 
-  select(ggkbase_id, watershed_km2) %>% 
-  rename(site= ggkbase_id)
 
 
 #### SUMMARIZE PI VALUES ACROSS THE GENOME ####
@@ -35,11 +27,9 @@ gi_filt_summary <- gi_filt_df %>%
             min_pi= min(pi, na.rm= TRUE),
             max_pi= max(pi, na.rm= TRUE),
             median_cov= median(coverage, na.rm= TRUE)) %>% 
-  ungroup() %>% 
-  left_join(., watershed.area, by= "site") # COMBINE WITH WATERSHED AREA
+  ungroup() 
 
-#write_tsv(gi_filt_summary, "Output_tables/nuc_div_summary.txt")
-
+## Summary values
 summary(gi_filt_summary$mean_pi)
 summary(gi_filt_summary$mean_pi2)
 
@@ -66,10 +56,10 @@ ggplot(data= gi_filt_df) +
   annotation_logticks(sides= "b") +
   scale_y_continuous(expand= c(0.01, 0)) +
   scale_color_discrete(guide= FALSE) +
-  #facet_rep_grid(species_facet~., scales= "free_y", labeller= label_parsed) +
+  facet_rep_grid(species_facet~., scales= "free_y", labeller= label_parsed) +
   theme_strains
 
-ggsave(last_plot(), filename = "Fig_S5.png", dpi= 320, height= 180*0.75, width= 180, units= "mm",
+ggsave(last_plot(), filename = "Fig_S5_v1.4.png", dpi= 320, height= 180*0.75, width= 180, units= "mm",
        path= "Output_figures")
 
 

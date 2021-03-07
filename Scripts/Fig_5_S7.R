@@ -7,8 +7,8 @@ source("Scripts/ggplot_themes.R")
 
 ## SNV data (input table generated in: format_inStrain_output.R)
 #snv_df <- read_tsv("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains/inStrain/output_tables/snp_mutation_type_df.tsv")
-snv_df <- read_tsv(file.path("Data/inStrain_data", "snv_df_filt.tsv"))
-snvs_genome_df <- read_tsv(file.path("Data/inStrain_data", "snvs_genome_summary_TEST.tsv"))
+snv_df <- read_tsv(file.path("Data/inStrain_data", "snv_df_filt_v1.4.tsv"))
+snvs_genome_df <- read_tsv(file.path("Data/inStrain_data", "snvs_genome_summary_v1.4.tsv"))
 
 
 ## CALCULATE MINOR ALLELE FREQUENCIES FOR SPECIES 1
@@ -60,12 +60,12 @@ sec.peaks.combined <- ggplot(filter(snv.freq.sp1, facet_label != "2015_01D" & se
   scale_color_manual(values= c("purple", pal_npg("nrc")(10)), guide= FALSE) +
   #lemon::facet_rep_wrap(~sec.peak, ncol= 1, scales= "free_y") +
   theme_strains
-ggsave(sec.peaks.combined, filename = "Fig_5b.png", height= 180*0.66, width= 180, units= "mm", dpi= 320,
+ggsave(sec.peaks.combined, filename = "Fig_5_v1.4.png", height= 180*0.66, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
   
   
-
-secondary.peaks <- ggplot(filter(snv.freq.sp1, facet_label %in% secondary.snv.peaks),  aes(x= varFreq_r2, y= n)) +
+secondary.peaks <- ggplot(filter(snv.freq.sp1, facet_label %in% secondary.snv.peaks & varFreq_r2 >= 0.05 & varFreq_r2 <= 0.5),
+                          aes(x= varFreq_r2, y= n)) +
   geom_point(color= species.colors[1], size= 1, alpha= 0.7) +
   #geom_point(aes(color= NS), size= 2) +
   #scale_color_gradientn(colors= colorRampPalette(c("snow2", species.colors[1]))(2),
@@ -84,7 +84,8 @@ secondary.peaks <- ggplot(filter(snv.freq.sp1, facet_label %in% secondary.snv.pe
         plot.margin = margin(t= 1, r=0.25, b= 0.5, l= 0.5, "cm"))
 
 
-no.secondary.peaks <- ggplot(filter(snv.freq.sp1, !(facet_label %in% secondary.snv.peaks) & (facet_label != "2015_01D") & (facet_label != "2015_01U")),  aes(x= varFreq_r2, y= n)) +
+no.secondary.peaks <- ggplot(filter(snv.freq.sp1, !(facet_label %in% secondary.snv.peaks) & varFreq_r2 >= 0.05 & varFreq_r2 <= 0.5 & (facet_label != "2015_01D") & (facet_label != "2015_01U")),  
+                             aes(x= varFreq_r2, y= n)) +
   geom_point(color= species.colors[1], size= 1, alpha= 0.7) +
   #geom_point(aes(color= NS), size= 2) +
   #scale_color_gradientn(colors= colorRampPalette(c("snow2", species.colors[1]))(2),
@@ -114,7 +115,7 @@ snv.freq.fig.anno <- annotate_figure(snv.freq.fig,
                                      bottom= text_grob("Minor allele frequency", vjust= -1))
 snv.freq.fig.anno
 
-ggsave(snv.freq.fig.anno, filename = "Fig_S7.png", height= 180, width= 180, units= "mm", dpi= 320,
+ggsave(snv.freq.fig.anno, filename = "Fig_S7_v1.4.png", height= 180, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 
 
