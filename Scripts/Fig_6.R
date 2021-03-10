@@ -1,35 +1,44 @@
-setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis")
+## Recombination: Haplotype frequencies and popCOGenT results
+# popCOGenT clonal divergence cutoff from paper: 0.000355362 
+# (https://github.com/philarevalo/PopCOGenT/blob/master/src/PopCOGenT/cluster.py)
+
+#setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis")
 
 ## Results from popCOGenT
 
 library(tidyverse)
-library(ggplot2)
 library(tidygraph)
 library(ggraph)
-library(wesanderson)
-library(cowplot)
-library(lemon) #facet_rep_grid
-source("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains/Scripts/ggplot_themes.R")
+source("Scripts/ggplot_themes.R")
 
 
-# Clonal divergence cutoff from paper: 0.000355362 
-# (https://github.com/philarevalo/PopCOGenT/blob/master/src/PopCOGenT/cluster.py)
+
 
 
 #### IMPORT DATA ####
 ## Haplotype frequencies
-haplo.freq <- read_tsv("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains/inStrain/output_tables/haplotype_freqs.tsv")
+#haplo.freq <- read_tsv("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains/inStrain/output_tables/haplotype_freqs.tsv")
+haplo.freq <- read_tsv("Data/inStrain_data/linkage_haplo_freqs_v1.4.tsv")
 
 ##  PopCOGentT results
-pgt <- read_csv("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/popCOGenT/popCOGenT_RESULTS.csv") %>% 
+#pgt <- read_csv("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/popCOGenT/popCOGenT_RESULTS.csv") %>% 
+pgt <- read_csv("Data/popCOGenT_data/popCOGenT_RESULTS.csv") %>% 
   rename(id= X1, name1= `Strain 1`, name2= `Strain 2`, divergence= `Initial divergence`, alignment_length= `Alignment size`, g1_length= `Genome 1 size`, g2_length= `Genome 2 size`,
          ssd_obs= `Observed SSD`, ssd_95CI_low= `SSD 95 CI low`, ssd_95CI_high= `SSD 95 CI high`) %>% 
   mutate(ssd_95CI_int= ssd_95CI_high - ssd_95CI_low)
+
+## Identify high length bias nodes and edges
 lb.high.cutoff <- quantile(pgt$ssd_obs, probs= 0.98) # Identify high length bias 98th percentils
 
+pgt.high <- pgt %>% 
+  filter(ssd_obs > lb.high.cutoff)
+pgt.high.names <- unique(c(pgt.high$name1, pgt.high$name2))
+
 ## Infograph network
-infomap <- igraph::read_graph("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/popCOGenT/infomap/sp1_0.000355362.txt.unclust.graphml",
-                              format= "graphml") %>% 
+# infomap <- igraph::read_graph("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/popCOGenT/infomap/sp1_0.000355362.txt.unclust.graphml",
+#                               format= "graphml") %>% 
+infomap <- igraph::read_graph("Data/popCOGenT_data/infomap_data/sp1_0.000355362.txt.unclust.graphml",
+                                format= "graphml") %>% 
   as_tbl_graph() %>% 
   # apply the high length bias cutoffs
   activate(nodes) %>% 
@@ -103,8 +112,8 @@ recombination.figure <- plot_grid(haplo.boxplot, popCOGenT.panels,
                                   nrow= 2,
                                   rel_heights= c(0.75, 1),
                                   labels= c("A"))
-ggsave(recombination.figure, filename= "Fig_6.png" , height= 180, width= 180, units= "mm", dpi= 320,
-       path= "/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/Output_figures")
+ggsave(recombination.figure, filename= "Fig_6_v1.4.png" , height= 180, width= 180, units= "mm", dpi= 320,
+       path= "Output_figures")
 
 
 
