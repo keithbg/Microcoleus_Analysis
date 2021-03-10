@@ -12,8 +12,8 @@ source("Scripts/ggplot_themes.R")
 
 #### FORMAT DATA ####
 
-## Input df generated in format_inStrain_output.R
-gi_filt_df <- read_tsv(file.path("Data/inStrain_data", "gene_info_filt_df_TEST.tsv"))
+## Input df generated in inStrain_format_output.R
+gi_filt_df <- read_tsv(file.path("Data/inStrain_data", "gene_info_filt_df_v1.4.tsv"))
 
 ## Watershed area data
 watershed.area <-
@@ -61,7 +61,7 @@ nucDiv.watershed.plot <- ggplot(data= gi_filt_summary, aes(x= watershed_km2, y= 
 ###############################################################################
 
 #### popANI X WATERSHED AREA ##################################################
-ani_sum <- read_tsv(file.path("Data/inStrain_data", "ani_summary_TEST.tsv")) # ani_sum generated in ANI_scaffold_data.R
+ani_sum <- read_tsv(file.path("Data/inStrain_data", "ani_summary_v1.4.tsv")) # ani_sum generated in ANI_scaffold_data.R
 
 #### FORMAT DATA ####
 ## Watershed area data
@@ -94,7 +94,7 @@ popANI.sum
 #### STATISTICS ####
 fit.popANI1 <- lm(meanPOPani ~ log10(watershed_1), data= popANI.sum)
 summary(fit.popANI1)
-plot(fit.popANI1)
+#plot(fit.popANI1)
 hist(log(popANI.sum$meanPOPani))
 
 #### FIGURE #####
@@ -250,7 +250,7 @@ watershedArea_combined3 <-  annotate_figure(watershedArea_combined2,
 
 
 
-ggsave(watershedArea_combined3, filename = "Fig_3.png", height= 180*1.25, width= 180, units= "mm", dpi= 320,
+ggsave(watershedArea_combined3, filename = "Fig_3_v1.4.png", height= 180*1.25, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 
 

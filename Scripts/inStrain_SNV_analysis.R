@@ -7,7 +7,7 @@ library(vegan)
 #### INPUT FILES ####
 in_dir <- "Data/inStrain_data/inStrain_output"
 
-species_lookup <- read_tsv("Data/inStrain_data/inStrain_sample_species_lookup.tsv") %>% 
+Aspecies_lookup <- read_tsv("Data/inStrain_data/inStrain_sample_species_lookup.tsv") %>% 
   mutate(species= str_c("species_", species_present)) %>% 
   rename(site= sample) %>% 
   select(-species_present)

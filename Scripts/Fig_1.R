@@ -133,7 +133,9 @@ species.map.inset <- ggdraw() +
 
 ## Write file
 ggsave(species.map.inset, filename= "Fig_1.png", width= 120, height= 120*1.1, units= "mm", dpi= 300,
-       path= "Output_figures")
+       bg= "transparent", path= "Output_figures")
+ggsave(species.map.inset, filename= "Fig_1.pdf", width= 120, height= 120*1.1, units= "mm",
+       device= cairo_pdf, bg= "transparent", path= "Output_figures")
 
 
   
