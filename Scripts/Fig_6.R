@@ -2,26 +2,17 @@
 # popCOGenT clonal divergence cutoff from paper: 0.000355362 
 # (https://github.com/philarevalo/PopCOGenT/blob/master/src/PopCOGenT/cluster.py)
 
-#setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis")
-
-## Results from popCOGenT
 
 library(tidyverse)
 library(tidygraph)
 library(ggraph)
 source("Scripts/ggplot_themes.R")
 
-
-
-
-
 #### IMPORT DATA ####
-## Haplotype frequencies
-#haplo.freq <- read_tsv("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains/inStrain/output_tables/haplotype_freqs.tsv")
-haplo.freq <- read_tsv("Data/inStrain_data/linkage_haplo_freqs_v1.4.tsv")
+## inStrain haplotype frequencies 
+haplo.freq <- read_tsv("Data/inStrain_data/linkage_haplo_freqs_v1.4.tsv") # file generated in: inStrain_linkage_haplotypes.R
 
 ##  PopCOGentT results
-#pgt <- read_csv("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/popCOGenT/popCOGenT_RESULTS.csv") %>% 
 pgt <- read_csv("Data/popCOGenT_data/popCOGenT_RESULTS.csv") %>% 
   rename(id= X1, name1= `Strain 1`, name2= `Strain 2`, divergence= `Initial divergence`, alignment_length= `Alignment size`, g1_length= `Genome 1 size`, g2_length= `Genome 2 size`,
          ssd_obs= `Observed SSD`, ssd_95CI_low= `SSD 95 CI low`, ssd_95CI_high= `SSD 95 CI high`) %>% 
@@ -35,8 +26,6 @@ pgt.high <- pgt %>%
 pgt.high.names <- unique(c(pgt.high$name1, pgt.high$name2))
 
 ## Infograph network
-# infomap <- igraph::read_graph("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/popCOGenT/infomap/sp1_0.000355362.txt.unclust.graphml",
-#                               format= "graphml") %>% 
 infomap <- igraph::read_graph("Data/popCOGenT_data/infomap_data/sp1_0.000355362.txt.unclust.graphml",
                                 format= "graphml") %>% 
   as_tbl_graph() %>% 
@@ -68,7 +57,7 @@ haplo.boxplot <- ggplot(data= haplo.freq, aes(x= haplotype, y= freq)) +
   theme_strains
 #haplo.boxplot
 
-## Length bias
+## PopCOGenT length bias
 length.bias.boxplot <- ggplot(pgt, aes(x= "Species 1 genomes", y= ssd_obs)) +
   geom_hline(yintercept = lb.high.cutoff, size= 0.2, linetype= "dotted") +
   geom_rect(aes(xmin=-Inf, xmax=Inf, ymin=0, ymax=27.9026), fill= "gray80", alpha= 50) + #max negative selection cutoff from popcogent_NegSelCutoff.R
