@@ -6,6 +6,18 @@ source("Scripts/ggplot_themes.R")
 
 ani_sum <- read_tsv("Data/inStrain_data/ani_summary_v1.4.tsv") # .tsv file generated in: Scripts/inStrain_ANI_summary.R
 
+## Summary values
+ani999 <- ani_sum %>% 
+  filter(mean_conANI > 0.999)
+
+ani999 %>% count(pMA > 0.8)
+20/27
+ani996_999 <- ani_sum %>% 
+  filter(mean_conANI > 0.996 & mean_conANI < 0.999)
+
+ani996_999 %>% count(pMA > 0.5)
+
+
 ##  inStrain v1.4 ##
 ggplot(data= ani_sum) +
   geom_vline(xintercept = 99.6, linetype= "dashed", color= "gray60", size= 0.5) +
