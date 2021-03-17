@@ -6,7 +6,6 @@ source("Scripts/ggplot_themes.R")
 
 
 ## SNV data (input table generated in: format_inStrain_output.R)
-#snv_df <- read_tsv("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/GenomesData/Strains/inStrain/output_tables/snp_mutation_type_df.tsv")
 snv_df <- read_tsv(file.path("Data/inStrain_data", "snv_df_filt_v1.4.tsv"))
 snvs_genome_df <- read_tsv(file.path("Data/inStrain_data", "snvs_genome_summary_v1.4.tsv"))
 
@@ -35,10 +34,21 @@ snv.freq.NS <- snv.freq.sp1 %>%
 
 
 #### STATISTICS ####
-summary(filter(snv.freq.NS, sec.peak == "Y")$NS)
-summary(filter(snv.freq.NS, sec.peak == "N")$NS)
+#summary(filter(snv.freq.NS, sec.peak == "Y")$NS)
+#summary(filter(snv.freq.NS, sec.peak == "N")$NS)
+#summary(lm(NS ~ sec.peak, data= snv.freq.NS))
+#plot(lm(NS ~ sec.peak, data= snv.freq.NS))
 
-summary(lm(NS ~ sec.peak, data= snv.freq.NS))
+
+## Samples 12U and 12D are large N:S outliers. These are also the reference genome, which introduces some bias into the results.
+## Therefore I am removing these genomes for the analysis and report the values below in the manuscript
+summary(filter(snv.freq.NS, sec.peak == "Y" & site != "PH2015_12U" & site != "PH2015_12D")$NS)
+summary(filter(snv.freq.NS, sec.peak == "N" & site != "PH2015_12U" & site != "PH2015_12D")$NS)
+
+
+boxplot(NS ~ sec.peak, data= filter(snv.freq.NS, site != "PH2015_12U" & site != "PH2015_12D"))
+summary(lm(NS ~ sec.peak, data= filter(snv.freq.NS, site != "PH2015_12U" & site != "PH2015_12D")))
+
 
 
 #### FIGURES ####
@@ -50,16 +60,20 @@ ggplot(snv.freq.NS, aes(x= sec.peak, y= NS)) +
 
 sec.peaks.combined <- ggplot(filter(snv.freq.sp1, facet_label != "2015_01D" & sec.peak == "Y"), aes(x= varFreq_r2, y= n, group= facet_label)) +
   #geom_point(color= species.colors[1], size= 1, alpha= 0.7) +
-  geom_smooth(aes(color= facet_label), method= "gam", se= FALSE, size= 0.75) +
+  #geom_point(aes(color= facet_label), size= 1, alpha= 0.7) +
+  #geom_line(aes(group= facet_label, color= facet_label), size= 1, alpha= 0.7) +
+  geom_smooth(aes(color= facet_label), method= "loess", span= 0.2, se= FALSE, size= 0.75) +
   labs(x= "Minor allele frequency", y= "Number of SNV sites") +
   scale_x_continuous(limits= c(0.04, 0.5), 
                      breaks= seq(0.05, 0.5, by= 0.05),
                      labels= c("", "0.1", "", "0.2", "", "0.3", "", "0.4", "", "0.5"),
                      expand= c(0,0)) +
+  scale_y_continuous(limits= c(0, 3500)) +
  # scale_color_manual(values= viridis::magma(11), guide= FALSE) +
   scale_color_manual(values= c("purple", pal_npg("nrc")(10)), guide= FALSE) +
-  #lemon::facet_rep_wrap(~sec.peak, ncol= 1, scales= "free_y") +
+ #lemon::facet_rep_wrap(~facet_label, ncol= 4, scales= "free_x") +
   theme_strains
+sec.peaks.combined
 ggsave(sec.peaks.combined, filename = "Fig_5_v1.4.png", height= 180*0.66, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
   
