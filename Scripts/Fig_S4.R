@@ -152,45 +152,5 @@ ggsave(env.plot.combined2, filename = "Fig_S4_v1.4.png", dpi= 320, height= 180*1
 
 
 
-#### CONSENSUS ANI STATISTICS ####
-filter(ani.env, metric == "canopy_cover_percent") %>% 
-  plot(log(mean_conANI) ~ diff, data= .)
-
-fitCon.canopy <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "canopy_cover_percent"))
-summary(fitCon.canopy)
-plot(fitCon.canopy)
-anova(fitCon.canopy)
-
-
-filter(ani.env, metric == "cond_ms") %>% 
-plot(log(mean_conANI) ~ diff, data= .)
-
-fitCon.cond <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "cond_ms"))
-summary(fitCon.cond)
-anova(fitCon.cond)
-plot(fitCon.cond)
-
-
-filter(ani.env, metric == "temp_NorWest") %>% 
-  plot(log(mean_conANI) ~ diff, data= .)
-
-fitCon.NorWest <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "temp_NorWest"))
-summary(fitCon.NorWest)
-anova(fitCon.NorWest)
-
-## TDN and TDP variables no longer significant under inStrain v1.4
-filter(ani.env, metric == "TDN_ugL") %>% 
-  plot(log(mean_conANI) ~ diff, data= .)
-
-fitCon.TDN <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "TDN_ugL"))
-summary(fitCon.TDN)
-anova(fitCon.TDN)
-
-filter(ani.env, metric == "TDP_ugL") %>% 
-  plot(log(mean_conANI) ~ diff, data= .)
-
-fitCon.TDP <- lm(log(mean_conANI) ~ diff, filter(ani.env, metric == "TDP_ugL"))
-summary(fitCon.TDP)
-anova(fitCon.TDP)
 
 

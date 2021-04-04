@@ -13,13 +13,17 @@ ani_sum <- read_tsv("Data/inStrain_data/ani_summary_v1.4.tsv") # .tsv file gener
 #### STATISTICS ####
 fit.popANI <- lm((mean_popANI*100) ~ riv_dist, ani_sum)
 #summary(fit.popANI)
+#anova(fit.popANI)
 fit.conANI <- lm((mean_conANI*100) ~ riv_dist, ani_sum)
 #summary(fit.conANI)
+#anova(fit.conANI)
 
 conANI_25km_fit1 <- lm((mean_conANI*100) ~ riv_dist + watershed_diff, data= filter(ani_sum, riv_dist < 25000))
 #summary(conANI_25km_fit1)
 conANI_25km_fit2 <- lm((mean_conANI*100) ~ riv_dist * watershed_diff, data= filter(ani_sum, riv_dist < 25000))
-#summary(conANI_25km_fit2)
+summary(conANI_25km_fit2)
+anova(conANI_25km_fit2)
+
 anova(conANI_25km_fit1, conANI_25km_fit2)
 
 
