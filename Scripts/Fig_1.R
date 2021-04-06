@@ -101,7 +101,8 @@ species.location.map <- ggplot() +
   coord_sf(xlim= c(382000, 545000),
            ylim= c(4238984, 4508831)) +
   labs(x= "Longitude", y= "Latitude") +
-  PH2017_map_theme
+  PH2017_map_theme# +
+  #theme(panel.background = element_rect(fill= "#bbc2e0"))
 
 
 ## Make inset map
@@ -133,6 +134,8 @@ species.map.inset <- ggdraw() +
 
 ## Write file
 ggsave(species.map.inset, filename= "Fig_1.png", width= 120, height= 120*1.1, units= "mm", dpi= 300,
+       bg= "transparent", path= "Output_figures")
+ggsave(species.map.inset, filename= "Fig_1.tiff", width= 120, height= 120*1.1, units= "mm", dpi= 400,
        bg= "transparent", path= "Output_figures")
 ggsave(species.map.inset, filename= "Fig_1.pdf", width= 120, height= 120*1.1, units= "mm",
        device= cairo_pdf, bg= "transparent", path= "Output_figures")
