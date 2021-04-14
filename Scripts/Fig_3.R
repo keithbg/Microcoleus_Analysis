@@ -1,8 +1,4 @@
 library(tidyverse)
-library(ggplot)
-library(RColorBrewer)
-library(cowplot)
-library(ggpubr) #ggarrange
 source("Scripts/ggplot_themes.R")
 
 #### NUCLEOTIDE DIVERSITY X WATERSHED AREA ####################################
@@ -35,8 +31,9 @@ gi_filt_summary <- gi_filt_df %>%
   left_join(., watershed.area, by= "site") # COMBINE WITH WATERSHED AREA
 
 #### STATISTICS ####
-fit.pi <- lm(median_pi ~ watershed_km2, data= gi_filt_summary)
+fit.pi <- lm(median_pi ~ species + log10(watershed_km2), data= gi_filt_summary)
 summary(fit.pi)
+anova(fit.pi)
 
 #### FIGURE ####
 
