@@ -1,4 +1,6 @@
-## Script to format and plot dRep ANI values
+## Figure S2
+
+##  dRep ANI values and species identities
 
 
 #### Libraries #################################################################

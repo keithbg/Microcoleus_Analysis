@@ -1,4 +1,5 @@
-## Copied from Fig_S4.R script
+## Statistics for Figure S4
+
 
 source("Scripts/Fig_S4.R")
 

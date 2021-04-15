@@ -1,15 +1,17 @@
+## Figure S6
+
 ## Histogram of SNV site s sharing at fixed and bi-allelic sites
 
-
+#### Libraries #################################################################
 library(tidyverse)
-library(RColorBrewer)
-library(lemon)
-library(cowplot)
 source("Scripts/ggplot_themes.R")
+################################################################################
 
 
 ## SNV SHARING X WATERSHED AREA
-#source("Scripts/inStrain_SNVS_analysis.R")
+# jaccard distance files generated in: Scripts/inStrain_SNVS_analysis.R
+# AC1: allele count = 1, fixed sites
+# AC2: allele count = 2, biallelic sites
 snv_dist_mat.AC1 <- read_tsv("Data/inStrain_data/snv_pos_AC1_jaccard.tsv") %>% 
   mutate(allele_count= "AC1")
 snv_dist_mat.AC2 <- read_tsv("Data/inStrain_data/snv_pos_AC2_jaccard.tsv") %>% 
@@ -24,12 +26,8 @@ snv_dist_df_list <- map(snv_dist_list, function(x) x %>%
                           mutate_all(as.character) %>% 
                           pivot_longer(., names_to = "siteB", values_to= "snv_distance", 
                                        cols= starts_with("PH")) %>% 
-                          mutate(snv_distance= as.numeric(snv_distance))) #%>% 
-                          #left_join(., river_dist_df) %>% 
-                          #inner_join(., ani.dist.df) %>% 
-                          #left_join(., select(watershed_area, siteA, watershed_km2_A)) %>% 
-                          #left_join(., select(watershed_area, siteB, watershed_km2_B)) %>% 
-                          #mutate(watershed_diff= abs(watershed_km2_A - watershed_km2_B)))
+                          mutate(snv_distance= as.numeric(snv_distance)))
+                        
 
 snv_dist_df <- bind_rows(snv_dist_df_list) %>% 
   filter(siteA != siteB)

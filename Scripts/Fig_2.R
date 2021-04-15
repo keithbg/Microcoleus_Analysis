@@ -1,12 +1,13 @@
-## Figure of popANI and conANI and river network distance
+## Figure 2
 
+## Relationship between popANI, conANI, and river network distance
 
+#### Libraries #################################################################
 library(tidyverse)
-library(ggplot2)
-library(cowplot)
-#source("Scripts/ANI_scaffold_data.R")
 source("Scripts/ggplot_themes.R")
+################################################################################
 
+#### READ DATA ####
 ani_sum <- read_tsv("Data/inStrain_data/ani_summary_v1.4.tsv") # .tsv file generated in: Scripts/inStrain_ANI_summary.R
 
 

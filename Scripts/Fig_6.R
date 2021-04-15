@@ -1,12 +1,15 @@
+## Figure 6
+
 ## Recombination: Haplotype frequencies and popCOGenT results
 # popCOGenT clonal divergence cutoff from paper: 0.000355362 
 # (https://github.com/philarevalo/PopCOGenT/blob/master/src/PopCOGenT/cluster.py)
 
-
+#### Libraries #################################################################
 library(tidyverse)
 library(tidygraph)
 library(ggraph)
 source("Scripts/ggplot_themes.R")
+################################################################################
 
 #### IMPORT DATA ####
 ## inStrain haplotype frequencies 

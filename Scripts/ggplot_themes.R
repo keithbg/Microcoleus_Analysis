@@ -7,6 +7,7 @@ library(lemon) #facet_rep_wrap
 library(RColorBrewer)
 library(wesanderson)
 library(ggsci)
+library(extrafont)
 
 
 

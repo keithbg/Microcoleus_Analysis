@@ -1,11 +1,15 @@
+## Figures 5 and S7
+
 # Minor allele frequencies in Species 1
 
-## Libraries
+#### Libraries #################################################################
 library(tidyverse)
 source("Scripts/ggplot_themes.R")
+################################################################################
 
 
-## SNV data (input table generated in: format_inStrain_output.R)
+
+#### SNV data (input table generated in: format_inStrain_output.R) ###
 snv_df <- read_tsv(file.path("Data/inStrain_data", "snv_df_filt_v1.4.tsv"))
 snvs_genome_df <- read_tsv(file.path("Data/inStrain_data", "snvs_genome_summary_v1.4.tsv"))
 
@@ -31,8 +35,6 @@ snv.freq.NS <- snv.freq.sp1 %>%
   select(site, NS, SNV_mbp, facet_label, sec.peak) %>% 
   distinct() 
   
-
-
 #### STATISTICS ####
 #summary(filter(snv.freq.NS, sec.peak == "Y")$NS)
 #summary(filter(snv.freq.NS, sec.peak == "N")$NS)
@@ -50,8 +52,7 @@ boxplot(NS ~ sec.peak, data= filter(snv.freq.NS, site != "PH2015_12U" & site != 
 summary(lm(NS ~ sec.peak, data= filter(snv.freq.NS, site != "PH2015_12U" & site != "PH2015_12D")))
 
 
-
-#### FIGURES ####
+#### FIGURE 5 ####
 ggplot(snv.freq.NS, aes(x= sec.peak, y= NS)) +
   geom_boxplot() +
   geom_point(position= "jitter") +
@@ -75,7 +76,7 @@ sec.peaks.combined <- ggplot(filter(snv.freq.sp1, facet_label != "2015_01D" & se
 ggsave(sec.peaks.combined, filename = "Fig_5_v1.4.png", height= 180*0.66, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
   
-  
+#### FIGURE S7 ####
 secondary.peaks <- ggplot(filter(snv.freq.sp1, facet_label %in% secondary.snv.peaks & varFreq_r2 >= 0.05 & varFreq_r2 <= 0.5),
                           aes(x= varFreq_r2, y= n)) +
   geom_point(color= species.colors[1], size= 1, alpha= 0.7) +

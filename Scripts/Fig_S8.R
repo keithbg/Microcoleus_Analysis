@@ -1,12 +1,15 @@
+## Figure S8
+
+## Histogram of inter-species Fst values
+
 ## PopGenome statistics on genes extracted from Roary output
 ## Plotting the data that was formatted in PopGenome_Roary_Analysis.R,
 
 
-#### LIBRARIES 
+#### Libraries #################################################################
 library(tidyverse)
-library(ggplot2)
-library(ggExtra)
 source("Scripts/ggplot_themes.R")
+################################################################################
 
 
 #### READ DATA

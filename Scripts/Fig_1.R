@@ -1,4 +1,6 @@
-## Make a map of sampling locations in the Eel and Russian river network
+## Figure 1
+
+## Map of sampling locations in the Eel and Russian river network
 ## Samples collected 2015 and 2017
 
 # HUC8 for Russian River: 18010110
@@ -8,7 +10,6 @@
 
 #### Libraries #################################################################
 library(tidyverse)
-library(ggplot2)
 library(sf)
 library(ggspatial) # scale bar and north arrow
 source("Scripts/ggplot_themes.R")

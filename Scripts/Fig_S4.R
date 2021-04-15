@@ -1,8 +1,11 @@
-#setwd("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis")
+## Figure S4
 
+## Relationship of environmental differences and nucleotide identities among samples
+
+#### Libraries #################################################################
 library(tidyverse)
-library(ggplot2)
 source("Scripts/ggplot_themes.R")
+################################################################################
 
 ## Function to reformat sample names for comparisons between ANI and environmental data
 extract_envID <- function(x){

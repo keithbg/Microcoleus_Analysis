@@ -1,14 +1,16 @@
+## Figure S5
+
+## Nucleotide diversity (pi) density distributions for Microcoleus species
+
 ## Investigate nucleotide diversity (pi) results from inStrain
 ## The data are generated in the "gene_profile" command in inStrain
 ## The files are SampleName.gene_profile.tsv
 
 
-## Libraries
+#### Libraries #################################################################
 library(tidyverse)
-library(ggplot2)
-library(lemon)
-library(extrafont)
 source("Scripts/ggplot_themes.R")
+################################################################################
 
 
 #### INPUT FILES

@@ -1,10 +1,14 @@
+## Figure S3
+
 ## Histogram of populuation and consensus ANI values
 
+#### Libraries #################################################################
 library(tidyverse)
 source("Scripts/ggplot_themes.R")
+################################################################################
 
-ani_sum <- read_tsv("Data/inStrain_data/ani_summary_v1.4.tsv") # ani_summary.tsv generateed in "Scripts/ANI_scaffold_data.R"
-#ani_sum08 <- read_tsv("Data/inStrain_data/ani_summary_v0.8.tsv") 
+ani_sum <- read_tsv("Data/inStrain_data/ani_summary_v1.4.tsv") # ani_summary.tsv generated in "Scripts/ANI_scaffold_data.R"
+
 
 ## 99.6% conANI threshold
 

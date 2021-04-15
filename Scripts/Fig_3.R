@@ -1,5 +1,12 @@
+## Figure 3
+
+## Relationshp betweeen nucleotide diversity, popANI, SNV sharing, and watershed area
+
+#### Libraries #################################################################
 library(tidyverse)
 source("Scripts/ggplot_themes.R")
+################################################################################
+
 
 #### NUCLEOTIDE DIVERSITY X WATERSHED AREA ####################################
 ## Investigate nucleotide diversity (pi) results from inStrain
