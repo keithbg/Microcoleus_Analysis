@@ -1,7 +1,10 @@
 ## Calculate haplotypes from linkage data
 
 ## Combine the linkage data with mutation type and haplotypes
-## reads in the XX_SNP_mutation_types.tsv and XX.linkage.tsv from inStrain
+## reads in 2 files from inStrain profile module:
+##  XX.SNVs.tsv files (https://instrain.readthedocs.io/en/latest/example_output.html#snvs-tsv)
+## and XX.linkage.tsv files (https://instrain.readthedocs.io/en/latest/example_output.html#linkage-tsv)
+
 ## exports a linkage file with the mutation type and haploytpe of the linkage file included
 ## Exported file = "Data/inStrain_data/linkage_haplo_df_v1.4.tsv"
 

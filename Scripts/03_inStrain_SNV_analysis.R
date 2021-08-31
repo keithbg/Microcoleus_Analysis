@@ -1,16 +1,20 @@
-## Investigate the SNVs.tsv file output
+## SNV sharing
+## Uses the SNVs.tsv file output from inStrain
+## Data used in Figure 3 of the manuscripts
+
+
 ## AC= allele count
 library(tidyverse)
 library(vegan)
 
 
 #### INPUT FILES ####
-in_dir <- "Data/inStrain_data/inStrain_output"
-
-Aspecies_lookup <- read_tsv("Data/inStrain_data/inStrain_sample_species_lookup.tsv") %>% 
+species_lookup <- read_tsv("Data/inStrain_data/inStrain_sample_species_lookup.tsv") %>% 
   mutate(species= str_c("species_", species_present)) %>% 
   rename(site= sample) %>% 
   select(-species_present)
+
+in_dir <- "Data/inStrain_data/inStrain_output"
 
 snv_files <- list.files(in_dir, pattern= "species_1.pid96.SNVs.tsv")
 

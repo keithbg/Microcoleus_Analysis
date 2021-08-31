@@ -1,3 +1,7 @@
+## Script to generate Supplementary Table 3 (Table S3). 
+## Each row is the output of the inStrain genome profile analysis for a single genome
+# https://instrain.readthedocs.io/en/latest/user_manual.html#profile
+
 library(tidyverse)
 in_dir <- "Data/inStrain_data/inStrain_output"
 genome_info_files <- list.files(in_dir, pattern= "pid96_genome_info")
@@ -14,4 +18,4 @@ gi_list <- map(genome_info_files, function(x) suppressMessages(read_tsv(file.pat
 gi_df <- bind_rows(gi_list, .id= "sample") %>% 
   select(sample, species, everything())
 
-write_tsv(gi_df, path= file.path("Data/inStrain_data", "genome_info_table.tsv"))
+write_tsv(gi_df, path= file.path("Data/inStrain_data", "Table_S3.tsv"))

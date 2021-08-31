@@ -19,11 +19,11 @@ ani.riv.dist <- left_join(river.distance, euclidean.distance) %>%
   rename(name1= sample.reference, name2= sample.querry)
 rm(euclidean.distance, river.distance)
 
-## Watershed area data OK
+## Watershed area data
 watershed.area <- read_tsv(file.path("Data/Spatial_data", "WatershedArea_Combined.tsv")) %>% 
   select(ggkbase_id, watershed_km2)
 
-## Species 1 sites OK
+## Species 1 sites
 sp1_sites <- read_tsv(file.path("Data/inStrain_data/", "inStrain_sample_species_lookup.tsv")) %>% 
   mutate(species= str_c("species_", species_present)) %>% 
   rename(site= sample) %>% 
@@ -31,15 +31,16 @@ sp1_sites <- read_tsv(file.path("Data/inStrain_data/", "inStrain_sample_species_
   filter(., species == "species_1") %>% 
   select(-multiple_species)
 
-## Nucleotide diversity (generated in inStrain_format_output.R) OK
-nuc_div <- read_tsv(file.path("Data/inStrain_data/", "nuc_div_summary_TEST.txt")) %>% 
+## Nucleotide diversity (generated in inStrain_format_output.R)
+nuc_div <- read_tsv(file.path("Data/inStrain_data/", "nuc_div_summary_v1.4.txt")) %>% 
   filter(species == "species_1") %>% 
   select(site, mean_pi, median_pi)
 
-## SNV Genome summary data (generated in inStrain_format_output.R) OK
-snv_genomes <- read_tsv("Data/inStrain_data/snvs_genome_summary_TEST.tsv")
+## SNV Genome summary data (generated in inStrain_format_output.R)
+snv_genomes <- read_tsv("Data/inStrain_data/snvs_genome_summary_v1.4.tsv")
 
-## inStrain compare results OK
+## inStrain compare module results
+# https://instrain.readthedocs.io/en/latest/user_manual.html#compare
 comp_sp1 <- read_tsv("Data/inStrain_data/compare_module_output_sp1_comparisonsTable.tsv") %>% 
   mutate(name1= str_replace(name1, "^.*-vs-", ""),
          name2= str_replace(name2, "^.*-vs-", "")) %>% 
@@ -106,7 +107,7 @@ ani_sum <- comp_sp1.F %>%
          pi_avg_median = rowMeans(cbind(.$median_pi.1, .$median_pi.2))) %>% 
   select(-contains(".x"), -contains(".y"))
 
-write_tsv(ani_sum, "Data/inStrain_data/ani_summary_TEST.tsv")
+write_tsv(ani_sum, "Data/inStrain_data/ani_summary_v1.4.tsv")
 
 
 ## dRep results REMOVEE FROM ANALYSES
