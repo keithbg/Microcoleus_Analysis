@@ -51,3 +51,18 @@ done
 
 ## Run Roary (90% blastp identity)
 roary -p 8 -i 90 -cd 90 -v -r -e -n -z -f Output_PHall_bp90_c90 ./annotated_GFF/*.gff
+
+## Remove the gene locus from the fasta headers from Roary output
+## This is necessary for input into PopGenome, so that genes within the same genome can be identified
+
+# Roary header: >PH2015_01U_Oscillatoriales_45_14_00178
+# Output header: >PH2015_01U_Oscillatoriales_45_14
+
+cd /Data/Roary_data/Output_PHall_bp90_c90/core_genome_sequences
+
+for file in $(ls -1 *.aln)
+  do
+  sed -i .bck 's/_[^_]*$//' "$file"
+done
+
+rm *.bck
