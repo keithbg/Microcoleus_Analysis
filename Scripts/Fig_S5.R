@@ -1,11 +1,6 @@
-## Figure S5
+## Figure S6
 
-## Nucleotide diversity (pi) density distributions for Microcoleus species
-
-## Investigate nucleotide diversity (pi) results from inStrain
-## The data are generated in the "gene_profile" command in inStrain
-## The files are SampleName.gene_profile.tsv
-
+## Histogram of SNV site s sharing at fixed and bi-allelic sites
 
 #### Libraries #################################################################
 library(tidyverse)
@@ -13,56 +8,51 @@ source("Scripts/ggplot_themes.R")
 ################################################################################
 
 
-#### INPUT FILES
-## Input df (gene_info_filt_df_v1.4.tsv) generated in format_inStrain_output.R
-gi_filt_df <- read_tsv("Data/inStrain_data/gene_info_filt_df_v1.4.tsv")
+## SNV SHARING X WATERSHED AREA
+# jaccard distance files generated in: Scripts/inStrain_SNVS_analysis.R
+# AC1: allele count = 1, fixed sites
+# AC2: allele count = 2, biallelic sites
+snv_dist_mat.AC1 <- read_tsv("Data/inStrain_data/snv_pos_AC1_jaccard.tsv") %>% 
+  mutate(allele_count= "AC1")
+snv_dist_mat.AC2 <- read_tsv("Data/inStrain_data/snv_pos_AC2_jaccard.tsv") %>% 
+  mutate(allele_count= "AC2")
+
+snv_dist_list <- list(AC1= snv_dist_mat.AC1, AC2= snv_dist_mat.AC2)
 
 
+# Make SNV_distance long and merge with river distance  
+snv_dist_df_list <- map(snv_dist_list, function(x) x %>% 
+                          mutate(siteA= names(.)[-48]) %>% 
+                          mutate_all(as.character) %>% 
+                          pivot_longer(., names_to = "siteB", values_to= "snv_distance", 
+                                       cols= starts_with("PH")) %>% 
+                          mutate(snv_distance= as.numeric(snv_distance)))
+                        
 
-#### SUMMARIZE PI VALUES ACROSS THE GENOME ####
-gi_filt_summary <- gi_filt_df %>% 
-  group_by(sample, site, species) %>% 
-  summarize(n= length(pi),
-            mean_pi= mean(pi, na.rm= TRUE),
-            median_pi= median(pi, na.rm= TRUE),
-            sd_pi= sd(pi, na.rm= TRUE),
-            min_pi= min(pi, na.rm= TRUE),
-            max_pi= max(pi, na.rm= TRUE),
-            median_cov= median(coverage, na.rm= TRUE)) %>% 
-  ungroup() 
+snv_dist_df <- bind_rows(snv_dist_df_list) %>% 
+  filter(siteA != siteB)
 
-## Summary values
-summary(gi_filt_summary$mean_pi)
-summary(gi_filt_summary$mean_pi2)
-
-hist(gi_filt_summary$median_pi2 - gi_filt_summary$mean_pi2)
-hist(gi_filt_summary$mean_pi2)
-hist(gi_filt_summary$median_pi2)
 
 
 #### MAKE FIGURE ####
-gi_filt_df$species_facet <- factor(gi_filt_df$species,
-                                   labels= c(expression(italic("Microcoleus")~"sp. 1"),
-                                             expression(italic("Microcoleus")~"sp. 2"),
-                                             expression(italic("Microcoleus")~"sp. 3")))
+allele_count.labels <- as_labeller(c(`AC1` = "Fixed sites", `AC2` = "Bi-allelic sites"))
 
-
-## Nucleotide diversity density curves
-ggplot(data= gi_filt_df) +
-  geom_density(aes(x= nucl_diversity, color= sample)) +
-  labs(x= "Nucleotide diversity", y= "Density") +
-  scale_x_log10(limits= c(0.00002, 0.52), # the minimum pi value (apart from 0) is 0.000026
-                breaks= c(0.0001, 0.001, 0.01, 0.1),
-                labels= c("0.0001", "0.001", "0.01", "0.1"),
-                expand= c(0, 0)) +
-  annotation_logticks(sides= "b") +
-  scale_y_continuous(expand= c(0.01, 0)) +
-  scale_color_discrete(guide= FALSE) +
-  facet_rep_grid(species_facet~., scales= "free_y", labeller= label_parsed) +
+snv_histogram <-  ggplot() +
+  geom_histogram(data= filter(snv_dist_df, allele_count == "AC1", siteB != "PH2015_12D", siteA != "PH2015_12D", siteB != "PH2015_12U", siteA != "PH2015_12U"),
+                 aes(x= (1-snv_distance)*100),
+                 binwidth= 1, boundary=1,  fill= "black") +
+  geom_histogram(data= filter(snv_dist_df, allele_count == "AC2"),
+                 aes(x= (1-snv_distance)*100),
+                 binwidth= 1, boundary=1,  fill= "black") +
+  labs(x= "SNV site similarity (%)", y= "Paired sample comparisons") +
+  scale_y_continuous(expand= c(0, 0)) +
+  scale_x_continuous(limits= c(0, 100),
+                     breaks= seq(0, 100, 10),
+                     expand= c(0, 0)) +
+  facet_rep_wrap(~allele_count, nrow=3,
+                 labeller= labeller(allele_count= allele_count.labels)) +
   theme_strains
 
-ggsave(last_plot(), filename = "Fig_S5_v1.4.png", dpi= 320, height= 180*0.75, width= 180, units= "mm",
+
+ggsave(snv_histogram, filename= "Fig_S6_v1.4.png", height= 180*.75, width= 180, units= "mm", dpi= 320, 
        path= "Output_figures")
-
-
-
