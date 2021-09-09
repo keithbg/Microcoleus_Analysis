@@ -7,7 +7,7 @@
 
 ## Average nucleotide identity (ANI) calculated with dRep
 
-## ani.species.tsv generated in dRep_format.R
+
 
 
 #### Libraries #################################################################
@@ -23,7 +23,7 @@ dir_input_ani <- file.path("Data", "dRep")
 dir_input_species <- file.path("Data")
 dir_input_env <- file.path("Data", "Env_data")
 dir_input_spatial <- file.path("Data", "Spatial_data")
-dir_output <- file.path("GenomesData", "GDM")
+
 ################################################################################
 
 #### READ AND FORMAT DATA ######################################################
@@ -78,11 +78,11 @@ env.all.df <- lat.long.info %>%
 #### ADD GENOMES TO ENVIRONMENTAL DATA ####
 
 ## List of ANI species 1 genomes
-ani.sp1.genomes <- read_tsv(file.path("/Users/kbg/Documents/UC_Berkeley/CyanoMeta_NSF/Metagenomics/Microcoleus_Analysis/Data/dRep/", "ani_species.tsv")) %>%
+ani.sp1.genomes <- read_tsv(file.path(dir_input_ani, "ani_species.tsv")) %>% ## ani.species.tsv generated in dRep_format.R
   filter(ani_species == 1) %>%
   select(genome)
 
-genome.site <- read_tsv(file.path(dir_input_env, "site_genome_table_2.tsv")) %>%
+genome.site <- read_tsv(file.path(dir_input_env, "site_genome_table.tsv")) %>%
                 mutate(site2= str_replace(.$site, "[A|B]$", "")) %>% # Adjust PH2017 site id to account for A and B samples with the same env. data
                 mutate(site3= str_replace(.$site2, "PH2017_[0-9].", "")) %>%
                 select(-site, -site2)
@@ -122,10 +122,17 @@ ani.sp1.dissmat <- cbind(ani.sp1[, 1], (1 - ani.sp1[, -1]))
 
 ## Subset only Cedar Creek genomes
 ani.CC.dissim <- left_join(ani.sp1.genomes[c(3, 5, 7, 15, 19), 1], ani.df) %>% 
-  select(1, c(6, 8, 10, 29, 33)) %>% 
+  select(1, c(6, 8, 10, 29, 33)) #%>% 
   mutate(across(where(is.numeric), ~ 1 - .x))
 
-
+ maxANI <-  ani.CC.dissim %>% 
+    mutate(across(where(is.numeric), ~ ifelse(.x == 1, NA, .x))) %>% 
+    summarize(across(where(is.numeric), ~ max(.x, na.rm= TRUE)))
+  
+ minANI <-  ani.CC.dissim %>% 
+   mutate(across(where(is.numeric), ~ ifelse(.x == 1, NA, .x))) %>% 
+   summarize(across(where(is.numeric), ~ min(.x, na.rm= TRUE)))
+ 
 
 ## Calculate ANI distances (method Euclidean)
 ani.sp1.dist <- as.data.frame(as.matrix(dist(ani.sp1[, -1], method= "euclidean")))
@@ -148,6 +155,8 @@ gdm.format <- gdm::formatsitepair(bioData = ani.sp1.dissmat, #ani.sp1.dist.DF,
                              siteColumn = "genome",
                              XColumn = "long",
                              YColumn = "lat")
+gdm.sp1.fit <- gdm::gdm(gdm.format, geo= FALSE)
+
 # DOES NOT CONVERGE
 
 ## Cedar Creek only species
@@ -157,6 +166,10 @@ gdm.cc.format <- gdm::formatsitepair(bioData = ani.CC.dissim, #ani.sp1.dist.DF,
                                      siteColumn = "genome",
                                      XColumn = "long",
                                      YColumn = "lat")
+gdm.cc.fit <- gdm::gdm(gdm.cc.format, geo= TRUE)
+
 # DOES NOT CONVERGE
+
+
 
 
