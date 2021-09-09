@@ -5,19 +5,12 @@ library(tidyverse)
 
 #### INPUT DATA ####
 
-## River network distance data OK
-# River network distance calculate on ArcGIS and CSV exported
+## River network distance data (calculated in RiverDistances.R and output saved as .Rdata file)
+load("Data/Spatial_data/flowDist_Vectors2.Rdata") # Use data frame: site_pairs_xyVert_flow
+river_distances <- site_pairs_xyVert_flow %>% 
+  select(name1, name2, flowConnected, flowDistTotal, flowDistNet, FlowConnection)
 
-euclidean.distance <- read_tsv(file.path("Data/Spatial_data", "Distance_Euclidean_meters.tsv")) %>% 
-  rename(sample.querry = sample.1, sample.reference = sample.2)
-
-river.distance <- read_tsv(file.path("Data/Spatial_data", "Distance_RiverNetwork_meters.tsv")) %>% 
-  gather(key= sample.querry, value= riv_dist, -Site) %>% 
-  rename(sample.reference= Site)
-
-ani.riv.dist <- left_join(river.distance, euclidean.distance) %>% 
-  rename(name1= sample.reference, name2= sample.querry)
-rm(euclidean.distance, river.distance)
+rm(flowConnected, flowDistTotal, flowDistNet) # Remove the objects that are not necessary for this analysis
 
 ## Watershed area data
 watershed.area <- read_tsv(file.path("Data/Spatial_data", "WatershedArea_Combined.tsv")) %>% 
@@ -93,10 +86,7 @@ ani_sum <- comp_sp1.F %>%
   left_join(., select(snv_genomes, ggkbase_id, SNV_mbp), by= c("name2" = "ggkbase_id")) %>% 
   rename(SNV_mbp.1= SNV_mbp.x, SNV_mbp.2= SNV_mbp.y) %>% 
   # RIVER DISTANCE JOIN
-  left_join(., ani.riv.dist, by= c("name1", "name2")) %>% 
-  left_join(., ani.riv.dist, by= c("name1" = "name2", "name2" = "name1")) %>% 
-  mutate(riv_dist= ifelse(is.na(riv_dist.x), riv_dist.y, riv_dist.x),
-         euc_dist= ifelse(is.na(euc_dist.x), euc_dist.y, euc_dist.x)) %>% 
+  left_join(., river_distances, by= c("name1", "name2")) %>% 
   # NUCLEOTIDE DIVERSITY JOIN
   left_join(., nuc_div, by= c("name1" = "site")) %>% 
   left_join(., nuc_div, by= c("name2" = "site")) %>% 
@@ -108,6 +98,18 @@ ani_sum <- comp_sp1.F %>%
   select(-contains(".x"), -contains(".y"))
 
 write_tsv(ani_sum, "Data/inStrain_data/ani_summary_v1.4.tsv")
+
+## Calculate unique site-pairs
+#site_pairs <- ani_sum %>% 
+#  select(name1, name2)
+#write_tsv(site_pairs, "Data/site_pairs.tsv")
+
+  #left_join(., ani.riv.dist, by= c("name1", "name2")) %>% 
+  #left_join(., ani.riv.dist, by= c("name1" = "name2", "name2" = "name1")) %>% 
+  #mutate(riv_dist= ifelse(is.na(riv_dist.x), riv_dist.y, riv_dist.x),
+  #       euc_dist= ifelse(is.na(euc_dist.x), euc_dist.y, euc_dist.x)) %>% 
+
+
 
 
 ## dRep results REMOVEE FROM ANALYSES
