@@ -1,7 +1,7 @@
-## Statistics for Figure S4
+## Statistics for Figure 3
 
 
-source("Scripts/Fig_S4.R")
+source("Scripts/Fig_3.R")
 
 #### CONSENSUS ANI STATISTICS ####
 filter(ani.env, metric == "canopy_cover_percent") %>% 
@@ -46,14 +46,8 @@ anova(fitCon.TDP)
 
 
 
-
-
-
-
-
-
 #### MODEL SELECTION ####
-conANI.env.w <- ani.env %>% # ani.env generated in Fig_S4.R
+conANI.env.w <- ani.env %>% # ani.env generated in Fig_3.R
   dplyr::select(mean_conANI, year, diff, metric, riv_dist, watershed_diff) %>% 
   pivot_wider(names_from = "metric", values_from = "diff") %>% 
   dplyr::select(-pH, -alk, -NH4_ugL, -mean_vX, -NO3_ugL, -DOC_ugL, -do_mgL, -temp) %>% 

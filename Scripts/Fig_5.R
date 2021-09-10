@@ -1,4 +1,4 @@
-## Figure 4
+## Figure 5
 
 ## Consensus ANI and percent shared minor alleles
 
@@ -55,6 +55,6 @@ ggplot(data= ani_sum) +
         legend.title= element_text(size= 10),
         legend.background = element_rect(color= "transparent", fill= "transparent"))
 
-ggsave(last_plot(), filename = "Fig_4_v1.4.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
+ggsave(last_plot(), filename = "Fig_5_v1.4.png", height= 180*0.75, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 

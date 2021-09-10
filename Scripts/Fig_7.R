@@ -1,4 +1,4 @@
-## Figure 6
+## Figure 7
 
 ## Recombination: Haplotype frequencies and popCOGenT results
 # popCOGenT clonal divergence cutoff from paper: 0.000355362 
@@ -104,7 +104,7 @@ recombination.figure <- plot_grid(haplo.boxplot, popCOGenT.panels,
                                   nrow= 2,
                                   rel_heights= c(0.75, 1),
                                   labels= c("A"))
-ggsave(recombination.figure, filename= "Fig_6_v1.4.png" , height= 180, width= 180, units= "mm", dpi= 320,
+ggsave(recombination.figure, filename= "Fig_7_v1.4.png" , height= 180, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 
 

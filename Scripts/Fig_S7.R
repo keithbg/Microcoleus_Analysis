@@ -1,6 +1,6 @@
-## Figure S8
+## Figure S7
 
-## Histogram of inter-species Fst values
+## Boxplots of inter-species Fst values
 
 ## PopGenome statistics on genes extracted from Roary output
 ## Plotting the data that was formatted in PopGenome_Roary_Analysis.R,

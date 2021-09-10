@@ -1,4 +1,4 @@
-## Figure S4
+## Figure 3
 
 ## Relationship of environmental differences and nucleotide identities among samples
 
@@ -150,7 +150,7 @@ env.plot.combined2 <- plot_grid(year.legend, env.plot.combined,
                                 nrow=2,
                                 rel_heights= c(0.1, 1))
 
-ggsave(env.plot.combined2, filename = "Fig_S4_v1.4.png", dpi= 320, height= 180*1.2, width= 180, units= "mm",
+ggsave(env.plot.combined2, filename = "Fig_3_v1.4.png", dpi= 320, height= 180*1.2, width= 180, units= "mm",
        path= "Output_figures")
 
 

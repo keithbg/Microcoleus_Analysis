@@ -1,4 +1,4 @@
-## Figure S6
+## Figure S5
 
 ## Histogram of SNV site s sharing at fixed and bi-allelic sites
 

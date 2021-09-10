@@ -1,4 +1,4 @@
-## Figure 3
+## Figure 4
 
 ## Relationshp betweeen nucleotide diversity, popANI, SNV sharing, and watershed area
 
@@ -254,7 +254,7 @@ watershedArea_combined3 <-  annotate_figure(watershedArea_combined2,
 
 
 
-ggsave(watershedArea_combined3, filename = "Fig_3_v1.4.png", height= 180*1.25, width= 180, units= "mm", dpi= 320,
+ggsave(watershedArea_combined3, filename = "Fig_4_v1.4.png", height= 180*1.25, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 
 

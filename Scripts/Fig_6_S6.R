@@ -1,4 +1,4 @@
-## Figures 5 and S7
+## Figures 6 and S6
 
 # Minor allele frequencies in Species 1
 
@@ -73,7 +73,7 @@ sec.peaks.combined <- ggplot(filter(snv.freq.sp1, facet_label != "2015_01D" & se
   lemon::facet_rep_wrap(~facet_label, ncol= 4, scales= "free_x") +
   theme_strains
 #sec.peaks.combined
-ggsave(sec.peaks.combined, filename = "Fig_5_v1.4.png", height= 180*0.66, width= 180, units= "mm", dpi= 320,
+ggsave(sec.peaks.combined, filename = "Fig_6_v1.4.png", height= 180*0.66, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
   
 #### FIGURE S7 ####
@@ -128,7 +128,7 @@ snv.freq.fig.anno <- annotate_figure(snv.freq.fig,
                                      bottom= text_grob("Minor allele frequency", vjust= -1))
 snv.freq.fig.anno
 
-ggsave(snv.freq.fig.anno, filename = "Fig_S7_v1.4.png", height= 180, width= 180, units= "mm", dpi= 320,
+ggsave(snv.freq.fig.anno, filename = "Fig_S6_v1.4.png", height= 180, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 
 

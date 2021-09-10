@@ -1,4 +1,4 @@
-## Figure S5
+## Figure S4
 
 ## Nucleotide diversity (pi) density distributions for Microcoleus species
 
