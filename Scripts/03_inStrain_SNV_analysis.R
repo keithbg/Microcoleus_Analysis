@@ -1,6 +1,11 @@
 ## SNV sharing
 ## Uses the SNVs.tsv file output from inStrain
-## Data used in Figure 3 of the manuscripts
+## Data used in Figure 4 of the manuscripts
+
+## SNV sharing is when two genomes have an SNV located at the same site in the genome.
+## Allele: different nucleotides in reads aligned at the same location in the genome. 
+##         For example, if a site had a read depth of 10. Then there could be 7 T base pairs and 3 A base pairs
+##         This would have an allele count (AC) of two: A & T. 
 
 
 ## AC= allele count

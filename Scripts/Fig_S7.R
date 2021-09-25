@@ -40,7 +40,7 @@ ggplot(data= pg.btw.filt) +
   theme_strains +
   theme(text= element_text(size= 8))
 
-ggsave(last_plot(), file= "Fig_S8.png", width= 90, height= 90, units= "mm", dpi= 320,
+ggsave(last_plot(), file= "Fig_S7.png", width= 90, height= 90, units= "mm", dpi= 320,
        path= "Output_figures") 
 
 

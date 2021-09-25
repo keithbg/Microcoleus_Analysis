@@ -6,7 +6,7 @@ library(tidyverse)
 #### INPUT DATA ####
 
 ## River network distance data (calculated in RiverDistances.R and output saved as .Rdata file)
-load("Data/Spatial_data/flowDist_Vectors2.Rdata") # Use data frame: site_pairs_xyVert_flow
+load("Data/Spatial_data/flowDist_Vectors.Rdata") # Use data frame: site_pairs_xyVert_flow
 river_distances <- site_pairs_xyVert_flow %>% 
   select(name1, name2, flowConnected, flowDistTotal, flowDistNet, FlowConnection)
 

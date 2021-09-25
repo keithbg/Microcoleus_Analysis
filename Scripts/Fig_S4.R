@@ -61,7 +61,7 @@ ggplot(data= gi_filt_df) +
   facet_rep_grid(species_facet~., scales= "free_y", labeller= label_parsed) +
   theme_strains
 
-ggsave(last_plot(), filename = "Fig_S5_v1.4.png", dpi= 320, height= 180*0.75, width= 180, units= "mm",
+ggsave(last_plot(), filename = "Fig_S4_v1.4.png", dpi= 320, height= 180*0.75, width= 180, units= "mm",
        path= "Output_figures")
 
 

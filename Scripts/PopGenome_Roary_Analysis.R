@@ -33,7 +33,7 @@ core_genes <- extract_core_aln(roary_path= dir_roary, core_prop= 0.2, move_files
 ## Run Bash script using terminal from "core_genes_sequences" folder to format fasta headers for PopGenome
 "cd Data/Roary_data/Output_PHall_bp90_c90/core_genome_sequences"
 "bash Scripts/Roary_format_core_fasta_header.sh"
-
+  
 ## Trim sequences that are not divisible by 3 (i.e. 3 nucleotides in a codon)
 long_seqs <- trim_seq_length(core_genes_path= dir_core_genes, trim_seq= TRUE)
 

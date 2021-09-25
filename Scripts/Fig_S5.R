@@ -54,5 +54,5 @@ snv_histogram <-  ggplot() +
   theme_strains
 
 
-ggsave(snv_histogram, filename= "Fig_S6_v1.4.png", height= 180*.75, width= 180, units= "mm", dpi= 320, 
+ggsave(snv_histogram, filename= "Fig_S5_v1.4.png", height= 180*.75, width= 180, units= "mm", dpi= 320, 
        path= "Output_figures")

@@ -13,18 +13,20 @@ source("Scripts/ggplot_themes.R")
 ani_sum <- read_tsv("Data/inStrain_data/ani_summary_v1.4.tsv") # .tsv file generated in: Scripts/inStrain_ANI_summary.R
 
 ## Create data frame with RivDist and ANI_Summary
-load("Data/flowDist_Vectors.Rdata") # from RiverDistances.R
+load("Data/Spatial_data/flowDist_Vectors.Rdata") # from RiverDistances.R
 ## Combine data frame and flow-distance vectors together
 site_pairs_xyVert_flow <- bind_cols(site_pairs_xyVert, 
                                     tibble(flowConnected, flowDistTotal, flowDistNet)) %>% 
   mutate(FlowConnection= ifelse(is.na(flowConnected), "No", "Yes")) 
 
-ani_rivDist <- left_join(select(ani_sum, name1, name2, mean_conANI, mean_popANI, riv_dist, euc_dist, watershed_diff),
-                         select(site_pairs_xyVert_flow, name1, name2, FlowConnection, flowDistTotal, flowDistNet)) %>% 
-  mutate(riv_dist= riv_dist/1000,
-         euc_dist= euc_dist/1000,
+ani_rivDist <- left_join(select(ani_sum, name1, name2, mean_conANI, mean_popANI, watershed_diff),
+                         select(site_pairs_xyVert_flow, name1, name2, FlowConnection, flowDistTotal, flowDistNet)) 
+  
+ani_rivDist <-   ani_sum %>% 
+  mutate(#riv_dist= riv_dist/1000,
+         #euc_dist= euc_dist/1000,
          flowDistTotal= abs(flowDistTotal/1000),
-         dist_diff= riv_dist - flowDistTotal,
+         #dist_diff= riv_dist - flowDistTotal,
          mean_conANI= mean_conANI*100,
          mean_popANI= mean_popANI*100)
 
@@ -180,7 +182,7 @@ ANI_rivdist_combined3 <-  annotate_figure(ANI_rivdist_combined2,
 
 #ANI_rivdist_combined3
 
-ggsave(ANI_rivdist_combined3, filename = "Fig_2B_v1.4.png", height= 180, width= 180, units= "mm", dpi= 320,
+ggsave(ANI_rivdist_combined3, filename = "Fig_2_v1.4.png", height= 180, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
 
 

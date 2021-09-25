@@ -76,7 +76,7 @@ sec.peaks.combined <- ggplot(filter(snv.freq.sp1, facet_label != "2015_01D" & se
 ggsave(sec.peaks.combined, filename = "Fig_6_v1.4.png", height= 180*0.66, width= 180, units= "mm", dpi= 320,
        path= "Output_figures")
   
-#### FIGURE S7 ####
+#### FIGURE S6 ####
 secondary.peaks <- ggplot(filter(snv.freq.sp1, facet_label %in% secondary.snv.peaks & varFreq_r2 >= 0.05 & varFreq_r2 <= 0.5),
                           aes(x= varFreq_r2, y= n)) +
   geom_point(color= species.colors[1], size= 1, alpha= 0.7) +

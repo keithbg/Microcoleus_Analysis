@@ -99,7 +99,7 @@ popANI.sum
 fit.popANI1 <- lm(meanPOPani ~ log10(watershed_1), data= popANI.sum)
 summary(fit.popANI1)
 #plot(fit.popANI1)
-hist(log(popANI.sum$meanPOPani))
+#hist(log(popANI.sum$meanPOPani))
 
 #### FIGURE #####
 popANI_watershed <- ggplot(data= popANI.sum, aes(x= watershed_1, y= meanPOPani*100)) +

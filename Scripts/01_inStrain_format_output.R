@@ -21,11 +21,6 @@ species_lookup <- read_tsv("Data/inStrain_data/inStrain_sample_species_lookup.ts
   rename(site= sample) %>% 
   select(-species_present)
 
-#gg_anno <- read_tsv("inStrain/ggkbase_anno.tsv") # ggkbase annotations
-
-
-
-
 #### GENE_INFO.TSV FILE ##################################################################################
 ## Investigate nucleotide diversity (pi) results from inStrain
 ## The data are generated in the "gene_profile" command in inStrain
@@ -114,9 +109,6 @@ gi_filt_df <- map(cov_quantiles$sample, function(x) filter_coverage_breadth(gene
                                                                             breadth_thresh= 0.9,
                                                                             samp_name = x)) %>% 
   bind_rows(.)
-## COMBINE WITH GGKBASE ANNOTATIONS
-#gi_filt_df <- bind_rows(gi_filt) %>%  # transform list into a data frame
-  #left_join(., select(gg_anno, c(gene, uniref_anno, uniprot_anno, kegg_anno)), by= "gene") # combine with ggkbase annotations
 
 # Write files
 write_tsv(gi_filt_df, path= "Data/inStrain_data/gene_info_filt_df_v1.4.tsv")

@@ -48,15 +48,15 @@ anova(fitCon.TDP)
 
 #### MODEL SELECTION ####
 conANI.env.w <- ani.env %>% # ani.env generated in Fig_3.R
-  dplyr::select(mean_conANI, year, diff, metric, riv_dist, watershed_diff) %>% 
+  dplyr::select(mean_conANI, year, diff, metric, flowDistTotal, watershed_diff) %>% 
   pivot_wider(names_from = "metric", values_from = "diff") %>% 
   dplyr::select(-pH, -alk, -NH4_ugL, -mean_vX, -NO3_ugL, -DOC_ugL, -do_mgL, -temp) %>% 
-  mutate_at(c("TDP_ugL",  "TDN_ugL", "canopy_cover_percent", "cond_ms"), 
+  mutate_at(c("TDP_ugL",  "TDN_ugL", "canopy_cover_percent", "cond_ms", "flowDistTotal", "watershed_diff"), 
             scale)
 conANI.env.w
 
 popANI.env.w <- ani.env %>% 
-  dplyr::select(mean_popANI, year, diff, metric, riv_dist, watershed_diff) %>% 
+  dplyr::select(mean_popANI, year, diff, metric, flowDistTotal, watershed_diff) %>% 
   pivot_wider(names_from = "metric", values_from = "diff") %>% 
   dplyr::select(-pH, -alk, -NH4_ugL, -mean_vX, -NO3_ugL, -DOC_ugL, -do_mgL, -temp)
 
@@ -76,43 +76,46 @@ cAIC.con.env.dist <- cAIC4::stepcAIC(modAIC.con.env.dist, direction= "forward",
 
 
 ## Linear models with all variables
-lm.con.env <- lm(mean_conANI ~ ., data= dplyr::select(conANI.env.w, -riv_dist, -watershed_diff))
+lm.con.env <- lm(mean_conANI ~ ., data= dplyr::select(conANI.env.w, -flowDistTotal, -watershed_diff))
 summary(lm.con.env)
+
 lm.con.env.dist <-  lm(mean_conANI ~ ., data= conANI.env.w)
 summary(lm.con.env.dist)
 anova(lm.con.env, lm.con.env.dist)
 
-lm.pop.env <- lm(mean_popANI ~ ., data= dplyr::select(popANI.env.w, -riv_dist, -watershed_diff))
+lm.pop.env <- lm(mean_popANI ~ ., data= dplyr::select(popANI.env.w, -flowDistTotal, -watershed_diff))
 lm.pop.env.dist <-  lm(mean_popANI ~ ., data= popANI.env.w)
+
+## NOT USED IN PUBLICATION ##
 
 ## Select model based on AIC ##
 # conANI
-modAIC.con.env <- MASS::stepAIC(lm.con.env)
-summary(modAIC.con.env)
-modAIC.con.env$anova
-
-modAIC.con.env.dist <- MASS::stepAIC(lm.con.env.dist)
-summary(modAIC.con.env.dist)
-modAIC.con.env.dist$anova
-
-## Test improvement of adding distance parameters to the statistical fit
-anova(modAIC.con.env, modAIC.con.env.dist)
-
-# popANI
-modAIC.pop.env <- stepAIC(lm.pop.env)
-summary(modAIC.pop.env)
-modAIC.pop.env$anova
-
-modAIC.pop.env.dist <- stepAIC(lm.pop.env.dist)
-summary(modAIC.pop.env.dist)
-modAIC.pop.env.dist$anova
-plot(modAIC.pop.env.dist)
-
-anova(modAIC.pop.env, modAIC.pop.env.dist)
-
-
-
-
-
-
-
+# modAIC.con.env <- MASS::stepAIC(lm.con.env)
+# summary(modAIC.con.env)
+# modAIC.con.env$anova
+# 
+# modAIC.con.env.dist <- MASS::stepAIC(lm.con.env.dist)
+# summary(modAIC.con.env.dist)
+# modAIC.con.env.dist$anova
+# 
+# ## Test improvement of adding distance parameters to the statistical fit
+# anova(modAIC.con.env, modAIC.con.env.dist)
+# 
+# # popANI
+# modAIC.pop.env <- stepAIC(lm.pop.env)
+# summary(modAIC.pop.env)
+# modAIC.pop.env$anova
+# 
+# modAIC.pop.env.dist <- stepAIC(lm.pop.env.dist)
+# summary(modAIC.pop.env.dist)
+# modAIC.pop.env.dist$anova
+# plot(modAIC.pop.env.dist)
+# 
+# anova(modAIC.pop.env, modAIC.pop.env.dist)
+# 
+# 
+# 
+# 
+# 
+# 
+# 
