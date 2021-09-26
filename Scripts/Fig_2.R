@@ -33,14 +33,14 @@ ani_rivDist <-   ani_sum %>%
 
 
 #### STATISTICS ####
-fit.noflow2.conANI <- lm(mean_conANI ~ flowDistTotal*FlowConnection, data= ani_rivDist)
-summary(fit.noflow2.conANI)
-anova(fit.noflow2.conANI)
+fit.noflow.conANI <- lm(mean_conANI ~ flowDistTotal*FlowConnection, data= ani_rivDist)
+summary(fit.noflow.conANI)
+anova(fit.noflow.conANI)
 
-fit.noflow2.popANI <- lm(mean_popANI ~ flowDistTotal*FlowConnection, data= ani_rivDist)
-summary(fit.noflow2.popANI)
-anova(fit.noflow2.popANI)
-plot(fit.noflow2.popANI)
+fit.noflow.popANI <- lm(mean_popANI ~ flowDistTotal*FlowConnection, data= ani_rivDist)
+summary(fit.noflow.popANI)
+anova(fit.noflow.popANI)
+plot(fit.noflow.popANI)
 
 conANI_25km_fit1 <- lm((mean_conANI) ~ flowDistTotal + watershed_diff, data= filter(ani_rivDist, flowDistTotal < 25 & FlowConnection == "Yes"))
 summary(conANI_25km_fit1)
@@ -57,7 +57,7 @@ legend_title <- "Connected flow"
 ## Consensus ANI
 conANI2 <- ggplot(data= ani_rivDist, aes(x= flowDistTotal, y= mean_conANI)) +
   geom_point(aes(fill= FlowConnection, shape= FlowConnection), size= 3, color= "black", alpha= 0.5) +
-  geom_line(aes(x= flowDistTotal, y= predict(fit.noflow2.conANI), color= FlowConnection, group= FlowConnection), size= 2) +
+  geom_line(aes(x= flowDistTotal, y= predict(fit.noflow.conANI), color= FlowConnection, group= FlowConnection), size= 2) +
   scale_fill_manual(values= c(species.colors[1], "wheat2"), name= legend_title) +
   scale_color_manual(values= c(species.colors[1], "wheat2"), name= legend_title) +
   scale_shape_manual(values= c(23, 21), name= legend_title) +
@@ -76,7 +76,7 @@ conANI2
 ## Population ANI
 popANI2 <- ggplot(data= ani_rivDist, aes(x= flowDistTotal, y= mean_popANI)) +
   geom_point(aes(fill= FlowConnection, shape= FlowConnection), size= 3, color= "black", alpha= 0.5) +
-  geom_line(aes(x= flowDistTotal, y= predict(fit.noflow2.popANI), color= FlowConnection, group= FlowConnection), size= 2) +
+  geom_line(aes(x= flowDistTotal, y= predict(fit.noflow.popANI), color= FlowConnection, group= FlowConnection), size= 2) +
   scale_fill_manual(values= c(species.colors[1], "wheat2"), name= legend_title) +
   scale_color_manual(values= c(species.colors[1], "wheat2"), name= legend_title) +
   scale_shape_manual(values= c(23, 21), name= legend_title) +
@@ -94,52 +94,6 @@ popANI2 <- ggplot(data= ani_rivDist, aes(x= flowDistTotal, y= mean_popANI)) +
 
 
 ## conANI < 25 km
-short_dist <- filter(ani_rivDist, flowDistTotal < 1)
-
-sd2 <- short_dist %>% 
-  filter((name1 == "PH2015_02D" & name2 == "PH2015_03U") | 
-           (name1 == "PH2015_02D" & name2 == "PH2015_03D") |
-           (name1 == "PH2015_02D" & name2 == "PH2015_04U") |
-           (name1 == "PH2015_02D" & name2 == "PH2015_04D") |
-           (name1 == "PH2015_02D" & name2 == "PH2017_05_CCC_O_A") |
-           (name1 == "PH2015_02U" & name2 == "PH2015_03U") | 
-           (name1 == "PH2015_02U" & name2 == "PH2015_03D") |
-           (name1 == "PH2015_02U" & name2 == "PH2015_04D") |
-           (name1 == "PH2015_02U" & name2 == "PH2015_04U") |
-           (name1 == "PH2015_02U" & name2 == "PH2017_05_CCC_O_A") |
-           (name1 == "PH2017_01_SCD_O_A" & name2 == "PH2015_03U") | 
-           (name1 == "PH2017_01_SCD_O_A" & name2 == "PH2015_03D") |
-           (name1 == "PH2017_01_SCD_O_A" & name2 == "PH2015_04D") |
-           (name1 == "PH2017_01_SCD_O_A" & name2 == "PH2015_04U") |
-           (name2 == "PH2017_01_SCD_O_A" & name1 == "PH2015_03U") | 
-           (name2 == "PH2017_01_SCD_O_A" & name1 == "PH2015_03D") |
-           (name2 == "PH2017_01_SCD_O_A" & name1 == "PH2015_04D") |
-           (name2 == "PH2017_01_SCD_O_A" & name1 == "PH2015_04U") |
-           (name1 == "PH2017_01_SCD_O_A" & name2 == "PH2017_05_CCC_O_A"))
-
-sd2 %>% 
-  select(name1, name2, mean_conANI) %>% 
-  pivot_wider(names_from = name2, values_from= mean_conANI)
-
-sd3 <- short_dist %>% 
-  filter(name1 == "PH2015_02U" | name1 == "PH2015_02D" |
-           name1 == "PH2015_03U" | name1 == "PH2015_03D" |
-           name1 == "PH2015_04U" | name1 == "PH2015_04D" |
-           name1 == "PH2017_01_SCD_O_A" | name1 == "PH2017_05_CCC_O_A") %>% 
-  filter(name2 == "PH2015_02U" | name2 == "PH2015_02D" |
-           name2 == "PH2015_03U" | name2 == "PH2015_03D" |
-           name2 == "PH2015_04U" | name2 == "PH2015_04D" |
-           name2 == "PH2017_01_SCD_O_A" | name2 == "PH2017_05_CCC_O_A") #%>% 
-filter((!(name1 == "PH2015_02D" & name2 == "PH2015_02U") &
-          !(name1 == "PH2015_02D" & name2 == "PH2017_01_SCD_O_A") &
-          !(name1 == "PH2015_02U" & name2 == "PH2017_01_SCD_O_A")) |
-         (name1 == "PH2015_03D" & name2 == "PH2017_01_SCD_O_A") |
-         (name1 == "PH2015_03U" & name2 == "PH2017_01_SCD_O_A") |
-         (name1 == "PH2015_04D" & name2 == "PH2017_01_SCD_O_A") |
-         (name1 == "PH2015_04U" & name2 == "PH2017_01_SCD_O_A") |
-         (name1 == "PH2017_01_SCD_O_A" & name2 == "PH2017_05_CCC_O_A"))
-
-"PH2017_01_SCD_O_A"
 conANI_25km <- ggplot(data= filter(ani_rivDist, flowDistTotal < 25 & FlowConnection == "Yes"), aes(x= flowDistTotal, y= mean_conANI)) +
   geom_point(aes(fill= watershed_diff, size= watershed_diff), shape= 21, color= "gray50") +
   #geom_line(aes(x= flowDistTotal, y= predict(conANI_25km_fit1)), size= 2) +
