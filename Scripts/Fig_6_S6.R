@@ -52,7 +52,7 @@ boxplot(NS ~ sec.peak, data= filter(snv.freq.NS, site != "PH2015_12U" & site != 
 summary(lm(NS ~ sec.peak, data= filter(snv.freq.NS, site != "PH2015_12U" & site != "PH2015_12D")))
 
 
-#### FIGURE 5 ####
+#### FIGURE 6 ####
 ggplot(snv.freq.NS, aes(x= sec.peak, y= NS)) +
   geom_boxplot() +
   geom_point(position= "jitter") +
