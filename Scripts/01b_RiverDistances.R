@@ -1,5 +1,14 @@
 ### Script to calculate river network distances
 
+## Uses R package riverdist
+# Vignette: https://rdrr.io/cran/riverdist/f/vignettes/riverdist_vignette.Rmd, 
+# Package pdf: https://cran.r-project.org/web/packages/riverdist/riverdist.pdf
+
+# Output units = meters
+# Positive distance values indicate second location is upstream of first location
+# Negative distance values indicate second location is downstream of first location
+# Total flow distance is the total distance in meters regardless of upstream or downstream direction (see the package vignette for more details)
+# Net flow distance is the upstream distance minus downstream distance between 2 sites (see the package vignette for more details)
 
 
 #### Libraries #################################################################
@@ -126,6 +135,9 @@ save(site_pairs_xyVert, flowConnected, flowDistTotal, flowDistNet,  file = file.
 site_pairs_xyVert_flow <- bind_cols(site_pairs_xyVert, 
                                     tibble(flowConnected, flowDistTotal, flowDistNet)) %>% 
   mutate(FlowConnection= ifelse(is.na(flowConnected), "No", "Yes")) 
+
+save(site_pairs_xyVert_flow, site_pairs_xyVert, flowConnected, flowDistTotal, flowDistNet,  file = file.path(Output_Rdata_filename))
+
 
 return(site_pairs_xyVert_flow)
 
