@@ -111,32 +111,3 @@ write_tsv(ani_sum, "Data/inStrain_data/ani_summary_v1.4.tsv")
 
 
 
-
-## dRep results REMOVEE FROM ANALYSES
-# dir_input_dRep <- file.path("/Users","kbg","Documents","UC_Berkeley","CyanoMeta_NSF","Metagenomics", "Microcoleus_Analysis","GenomesData", "dRep","Output_tables")
-# sp1.ani <- read_tsv(file.path(dir_input_dRep, "sp1_ani.tsv")) %>% 
-#   rename(ani_dRep= ani) %>% 
-#   mutate(name1= str_replace(row_name, "_s25.*$|_Oscill.*$", ""),
-#          name2= str_replace(col_name, "_s25.*$|_Oscill.*$", "")) %>% 
-#   mutate(ani99_dRep= ifelse(ani_dRep > 0.995, ">0.995", 
-#                             ifelse(ani_dRep <= 0.995 & ani_dRep >=0.99, "0.99-0.995", "<0.99")))
-
-# DREP ANI JOIN
-#left_join(., sp1.ani) %>% 
-
-## Haplotype frequencies REMOVE FROM ANALYSES
-# haplos <- read_tsv(file= "inStrain/output_tables/haplotype_freqs.tsv") %>% 
-#   filter(species == "species_1")
-
-## SNV data and young/old populations REMOVE FROM ANALYSES
-# snv_genomes <- read_tsv("Output_tables/snvs_genome_summary.tsv") %>% 
-#   filter(species == "species_1") %>% 
-#   select(ggkbase_id, SNV_mbp, pop_age)
-
-#rename(#pop_age.1= pop_age.x, pop_age.2= pop_age.y,
-#       SNV_mbp.1= SNV_mbp.x, SNV_mbp.2= SNV_mbp.y) %>% 
-#mutate(pop_age_pair= str_c(pop_age.1, pop_age.2, sep= "-")) %>%
-#mutate(pop_age_pair= ifelse(pop_age_pair == "Young-Old", "Old-Young", pop_age_pair)) %>% 
-
-
-
