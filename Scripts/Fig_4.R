@@ -78,9 +78,11 @@ popANI.wide <- pivot_wider(select(ani_sum, name1, name2, mean_popANI),
   ungroup() %>% 
   mutate(PH2015_01D= NA) %>% 
   select(name1, PH2015_01D, everything()) %>% 
-  add_row(., name1= "PH2017_40_RAT_O_B")
-
+  add_row(., name1= "PH2017_40_RAT_O_B") %>% 
+  as.data.frame() # the gdata::lowerTriangle was throwing an error when passing it a tibble, changing to data frame fixed the issue. 
+                  # see this Stack Overflow: https://stackoverflow.com/questions/64056125/how-to-fix-erreur-subscript-amr1-orig-is-a-matrix-the-data-x-imp-possib
 gdata::lowerTriangle(popANI.wide[, -1]) <- gdata::upperTriangle(popANI.wide[, -1], byrow=TRUE)
+
 
 popANI.long <- pivot_longer(popANI.wide, names_to= "name2", values_to= "mean_popANI", -name1) %>% 
   # WATERSHED AREA JOIN
@@ -128,13 +130,27 @@ snv_dist_list <- list(AC1= read_tsv(file.path("Data/inStrain_data", "snv_pos_AC1
 
 
 ## River network distance between sites in meters
-river_dist_mat <- read_tsv(file.path("Data/Spatial_data", "Distance_RiverNetwork_meters.tsv")) %>% 
-  rename(site= Site)
 
-# Make river distances long
-river_dist_df <- river_dist_mat %>% 
-  rename(siteA= site) %>% 
-  gather(key= siteB, value= riv_dist, -siteA)
+## River network distance data (calculated in RiverDistances.R and output saved as .Rdata file)
+load("Data/Spatial_data/flowDist_Vectors.Rdata") # Use data frame: site_pairs_xyVert_flow
+riv_dist <- site_pairs_xyVert_flow %>% 
+  select(name1, name2, flowDistTotal) %>% 
+  rename(siteA= name1, siteB= name2) %>% 
+  mutate(flowDistTotal= abs(flowDistTotal))
+
+rm(flowConnected, flowDistTotal, flowDistNet) # Remove the objects that are not necessary for this analysis
+
+riv_dist.wide <- riv_dist %>% 
+  pivot_wider(names_from = "siteB", values_from= "flowDistTotal") %>% 
+  mutate(PH2015_01D= NA) %>% 
+  select(siteA, PH2015_01D, everything()) %>% 
+  add_row(., siteA= "PH2017_40_RAT_O_B") %>% 
+  as.data.frame(.)
+
+gdata::lowerTriangle(riv_dist.wide[, -1]) <- gdata::upperTriangle(riv_dist.wide[, -1], byrow=TRUE)
+
+riv_dist.long <- pivot_longer(riv_dist.wide, names_to= "siteB", values_to= "flowDistTotal", -siteA) %>% 
+  mutate(flowDistTotal= ifelse(is.na(flowDistTotal), 0, flowDistTotal))
 
 # Watershed areas
 watershed_area <- read_tsv(file.path("Data/Spatial_data", "WatershedArea_Combined.tsv")) %>% 
@@ -152,7 +168,7 @@ snv_dist_list_mutate <- map(snv_dist_list, function(x) x %>%
                               pivot_longer(., names_to = "siteB", values_to= "snv_distance", 
                                            cols= starts_with("PH")) %>% 
                               mutate(snv_distance= as.numeric(snv_distance)) %>% 
-                              left_join(., river_dist_df) %>% 
+                              left_join(., riv_dist.long) %>% 
                               #inner_join(., ani.dist.df) %>% 
                               left_join(., select(watershed_area, siteA, watershed_km2_A)) %>% 
                               left_join(., select(watershed_area, siteB, watershed_km2_B)) %>% 
@@ -162,11 +178,11 @@ snv_dist_df <- bind_rows(snv_dist_list_mutate) %>%
   filter(siteA != siteB)
 
 #### STATISTICS ####
-fit.AC1 <- lm(((1-snv_distance)) ~ riv_dist * log10(watershed_km2_A), filter(snv_dist_df, allele_count == "AC1", siteB != "PH2015_12D", siteA != "PH2015_12D", siteB != "PH2015_12U", siteA != "PH2015_12U"))
+fit.AC1 <- lm(((1-snv_distance)) ~ flowDistTotal * log10(watershed_km2_A), filter(snv_dist_df, allele_count == "AC1", siteB != "PH2015_12D", siteA != "PH2015_12D", siteB != "PH2015_12U", siteA != "PH2015_12U"))
 summary(fit.AC1)
 anova(fit.AC1)
 
-fit.AC2 <- lm(((1-snv_distance)) ~ riv_dist * log10(watershed_km2_A), filter(snv_dist_df, allele_count == "AC2", siteB != "PH2015_12D", siteA != "PH2015_12D", siteB != "PH2015_12U", siteA != "PH2015_12U"))
+fit.AC2 <- lm(((1-snv_distance)) ~ flowDistTotal * log10(watershed_km2_A), filter(snv_dist_df, allele_count == "AC2", siteB != "PH2015_12D", siteA != "PH2015_12D", siteB != "PH2015_12U", siteA != "PH2015_12U"))
 summary(fit.AC2)
 anova(fit.AC2)
 
@@ -176,7 +192,7 @@ cols <- c("snow1", brewer.pal(9, "BuGn")[5], species.colors[1])
 
 SNV_diss_watershed.AC1 <- filter(snv_dist_df, allele_count == "AC1", siteB != "PH2015_12D", siteA != "PH2015_12D", siteB != "PH2015_12U", siteA != "PH2015_12U") %>% 
   ggplot(., aes(x= watershed_km2_A, y= 1 - snv_distance, group= allele_count)) +
-  geom_point(aes(fill= riv_dist/1000), shape= 21, color= "black", size= 3) +
+  geom_point(aes(fill= flowDistTotal/1000), shape= 21, color= "black", size= 3) +
   geom_abline(intercept = fit.AC1$coefficients["(Intercept)"],
               slope = fit.AC1$coefficients["log10(watershed_km2_A)"],
               color= "black", size= 1) +
@@ -198,7 +214,7 @@ SNV_diss_watershed.AC1 <- filter(snv_dist_df, allele_count == "AC1", siteB != "P
 SNV_diss_watershed.AC1
 
 SNV_diss_watershed.AC2 <- ggplot(filter(snv_dist_df, allele_count == "AC2"), aes(x= watershed_km2_A, y= 1 - snv_distance, group= allele_count)) +
-  geom_point(aes(fill= riv_dist/1000), shape= 21, color= "black", size= 3) +
+  geom_point(aes(fill= flowDistTotal/1000), shape= 21, color= "black", size= 3) +
   geom_abline(intercept = fit.AC2$coefficients["(Intercept)"],
               slope = fit.AC2$coefficients["log10(watershed_km2_A)"],
               color= "black", size= 1) +
