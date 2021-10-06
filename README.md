@@ -1,12 +1,13 @@
 ### <i>Microcoleus</i> (Cyanobacteria) form watershed-wide populations without strong gradients in population structure
 Keith Bouma-Gregson*, Alexander Crits-Christoph, Mathew R. Olm, Mary E. Power, Jillian F. Banfield.  
-<i>Molecular Ecology</i>, accepted Sep-2021, in press.
+<i>Molecular Ecology</i>, accepted Sep-2021.
+https://doi.org/10.1111/mec.16208
 
 *Corresponding author: kbouma-gregson@usgs.gov
 ________________________________________________________________________________________________
 
 This repository contains scripts used to analyze data and generate figures for this publication.  
-Data are deposited in Dryad at DOI: TBD  
+Data are deposited in Dryad at DOI: https://doi.org/10.6078/D1FX44  
 Raw sequencing reads (SRA) and metagenomic assembled genomes (MAGs) are deposited in NCBI under Bioproject: PRJNA448579  
 
 Most of the analysis was done in R using Rstudio. To reproduce the R analysis, 
